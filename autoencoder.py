@@ -1,8 +1,7 @@
 from __future__ import print_function, division
 
-from keras.layers import Input, Dense, Flatten
+from keras.layers import Input
 from keras.layers import BatchNormalization, Activation
-from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.convolutional import Conv2D, Conv2DTranspose
 from keras.models import Sequential, Model
 from keras.optimizers import Adam

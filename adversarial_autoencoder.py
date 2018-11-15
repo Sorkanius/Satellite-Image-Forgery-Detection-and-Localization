@@ -1,16 +1,12 @@
 from __future__ import print_function, division
 
-from keras.layers import Input, Dense, Reshape, Flatten, Dropout, multiply, GaussianNoise
-from keras.layers import BatchNormalization, Activation, Embedding, ZeroPadding2D
-from keras.layers import MaxPooling2D, Concatenate
+from keras.layers import Input, Dense, Flatten
+from keras.layers import BatchNormalization, Activation
 from keras.layers.advanced_activations import LeakyReLU
-from keras.layers.convolutional import UpSampling2D, Conv2D, Conv2DTranspose
+from keras.layers.convolutional import Conv2D, Conv2DTranspose
 from keras.models import Sequential, Model
-from keras.optimizers import Adam, RMSprop
-from keras import losses
-from keras.utils import to_categorical
+from keras.optimizers import Adam
 import argparse
-import keras.backend as K
 import pickle
 import sys 
 try:
@@ -198,7 +194,7 @@ class AdversarialAutoencoder():
         print('Start training on {} images'.format(X_train.shape[0]))
 
         if os.path.isfile('aae_discriminator.h5'):
-            self.discriminator.load_weights('discriminator.h5')
+            self.discriminator.load_weights('aae_discriminator.h5')
             print('Loaded discriminator weights!')
         elif pre_dis_iterations > 0:
             self.pretrain_discriminator(X_train, pre_dis_iterations, batch_size)
@@ -259,7 +255,7 @@ class AdversarialAutoencoder():
         plt.plot(np.arange(len(self.history['g_loss'][::step])), self.history['g_loss'][::step],
                  c='C1', label='generator')
         plt.legend()
-        plt.savefig('loss')
+        plt.savefig('aae_loss')
 
         plt.figure()
         plt.title('Acc History')
@@ -271,7 +267,7 @@ class AdversarialAutoencoder():
         plt.plot(np.arange(len(self.history['g_acc'][::step])), self.history['g_acc'][::step], c='C1',
                  label='generator')
         plt.legend()
-        plt.savefig('accuracy')
+        plt.savefig('aae_accuracy')
 
     def sample_images(self, it, imgs):
         r, c = 5, 5
