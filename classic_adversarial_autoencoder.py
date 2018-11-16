@@ -98,7 +98,7 @@ class ClassicAdversarialAutoencoder():
     def build_discriminator(self):
         # Discriminador
         discriminator = Sequential()
-        discriminator.add(Dense(128, activation="relu", input_shape=(1,)))
+        discriminator.add(Dense(128, activation="relu", input_shape=(self.latent_shape,)))
         discriminator.add(Dense(128, activation="relu"))
         discriminator.add(Dense(1, activation="sigmoid"))
 
@@ -156,10 +156,11 @@ class ClassicAdversarialAutoencoder():
             # ---------------------
             imgs = X_train[np.random.randint(0, X_train.shape[0], half_batch)]
             latent_fake = self.encoder.predict(imgs)
-            latent_real = self.generate_p_sample(half_batch)
+            latent_real = np.asarray(self.generate_p_sample(half_batch))
 
             reg_loss_real = self.discriminator.train_on_batch(latent_real, half_valid)
-            reg_loss_fake = self.discriminator.train_on_batch(latent_fake, half_fake)
+            # reg_loss_real = self.discriminator.train_on_batch(latent_real, half_valid)
+            reg_loss_fake = self.discriminator.train_on_batch(latent_fake.reshape(64, 2048), half_fake)
             reg_loss = 0.5 * np.add(reg_loss_real, reg_loss_fake)
 
             self.history['reg_loss'].append(reg_loss[0])
@@ -191,11 +192,11 @@ class ClassicAdversarialAutoencoder():
         plt.title('Loss History')
         plt.xlabel('Iter')
         plt.ylabel('Loss')
-        step = len(self.history['d_loss']) // 10 if len(self.history['d_loss']) > 1000 else 1
-        plt.plot(np.arange(len(self.history['d_loss'][::step])), self.history['d_loss'][::step],
-                 c='C0', label='discriminator')
-        plt.plot(np.arange(len(self.history['g_loss'][::step])), self.history['g_loss'][::step],
-                 c='C1', label='generator')
+        step = len(self.history['rec_loss']) // 10 if len(self.history['rec_loss']) > 1000 else 1
+        plt.plot(np.arange(len(self.history['rec_loss'][::step])), self.history['rec_loss'][::step],
+                 c='C0', label='reconstruction loss')
+        plt.plot(np.arange(len(self.history['reg_loss'][::step])), self.history['reg_loss'][::step],
+                 c='C1', label='regularization loss')
         plt.legend()
         plt.savefig('c_aae_loss')
 
@@ -203,11 +204,11 @@ class ClassicAdversarialAutoencoder():
         plt.title('Acc History')
         plt.xlabel('Iter')
         plt.ylabel('Acc')
-        step = len(self.history['d_acc']) // 10 if len(self.history['d_acc']) > 1000 else 1
-        plt.plot(np.arange(len(self.history['d_acc'][::step])), self.history['d_acc'][::step], c='C0',
-                 label='discriminator')
-        plt.plot(np.arange(len(self.history['g_acc'][::step])), self.history['g_acc'][::step], c='C1',
-                 label='generator')
+        step = len(self.history['rec_acc']) // 10 if len(self.history['rec_acc']) > 1000 else 1
+        plt.plot(np.arange(len(self.history['rec_acc'][::step])), self.history['rec_acc'][::step], c='C0',
+                 label='reconstruction')
+        plt.plot(np.arange(len(self.history['reg_acc'][::step])), self.history['reg_acc'][::step], c='C1',
+                 label='regularization')
         plt.legend()
         plt.savefig('c_aae_accuracy')
 
