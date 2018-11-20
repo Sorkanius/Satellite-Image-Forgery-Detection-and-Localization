@@ -126,6 +126,7 @@ class ClassicAdversarialAutoencoder():
         plt.ylabel('Loss')
         step = len(history['loss']) // 10 if len(history['loss']) > 1000 else 1
         plt.plot(np.arange(len(history['loss'][::step])), history['loss'][::step])
+        plt.grid()
         plt.savefig('figs/c_aae_pretrain_ae')
 
         self.autoencoder.save_weights('models/c_aae_autoencoder.h5')
@@ -198,6 +199,7 @@ class ClassicAdversarialAutoencoder():
         plt.plot(np.arange(len(self.history['reg_loss'][::step])), self.history['reg_loss'][::step],
                  c='C1', label='regularization loss')
         plt.legend()
+        plt.grid()
         plt.savefig('figs/c_aae_loss')
 
         plt.figure()
@@ -210,6 +212,7 @@ class ClassicAdversarialAutoencoder():
         plt.plot(np.arange(len(self.history['reg_acc'][::step])), self.history['reg_acc'][::step], c='C1',
                  label='regularization')
         plt.legend()
+        plt.grid()
         plt.savefig('figs/c_aae_accuracy')
 
     def sample_images(self, it, imgs):

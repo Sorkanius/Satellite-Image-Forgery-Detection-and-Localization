@@ -149,6 +149,7 @@ class AdversarialAutoencoder():
         plt.ylabel('Loss')
         step = len(history['loss']) // 10 if len(history['loss']) > 1000 else 1
         plt.plot(np.arange(len(history['loss'][::step])), history['loss'][::step])
+        plt.grid()
         plt.savefig('figs/pretrain_ae')
         
         self.autoencoder.save_weights('models/aae_autoencoder.h5')
@@ -180,6 +181,7 @@ class AdversarialAutoencoder():
         plt.ylabel('Loss')
         step = len(history['loss']) // 10 if len(history['loss']) > 1000 else 1
         plt.plot(np.arange(len(history['loss'][::step])), history['loss'][::step])
+        plt.grid()
         plt.savefig('figs/pretrain_discriminator')
 
         self.discriminator.save_weights('models/aae_discriminator.h5')
@@ -255,6 +257,7 @@ class AdversarialAutoencoder():
         plt.plot(np.arange(len(self.history['g_loss'][::step])), self.history['g_loss'][::step],
                  c='C1', label='generator')
         plt.legend()
+        plt.grid()
         plt.savefig('figs/aae_loss')
 
         plt.figure()
@@ -267,6 +270,7 @@ class AdversarialAutoencoder():
         plt.plot(np.arange(len(self.history['g_acc'][::step])), self.history['g_acc'][::step], c='C1',
                  label='generator')
         plt.legend()
+        plt.grid()
         plt.savefig('figs/aae_accuracy')
 
     def sample_images(self, it, imgs):

@@ -122,6 +122,7 @@ class Autoencoder():
         plt.plot(np.arange(len(self.history['ae_loss'][::step])), self.history['ae_loss'][::step],
                  c='C0', label='autoencoder')
         plt.legend()
+        plt.grid()
         plt.savefig('figs/ae_loss')
 
         plt.figure()
@@ -132,6 +133,7 @@ class Autoencoder():
         plt.plot(np.arange(len(self.history['ae_acc'][::step])), self.history['ae_acc'][::step], c='C0',
                  label='autoencoder')
         plt.legend()
+        plt.grid()
         plt.savefig('figs/ae_accuracy')
 
     def sample_images(self, it, imgs):
