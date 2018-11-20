@@ -94,7 +94,7 @@ class Autoencoder():
             self.autoencoder.load_weights('models/ae_autoencoder.h5')
             print('Loaded autoencoder weights!')
 
-        for it in range(iterations):
+        for it in range(iterations + 1):
             # ---------------------
             #  Train Autoencoder
             # ---------------------
@@ -109,7 +109,7 @@ class Autoencoder():
             # If at save interval => save generated image samples
             if it % sample_interval == 0:
                 # Select a random half batch of images
-                idx = np.random.randint(0, X_train.shape[0], 25)
+                idx = np.arange(0, 25)
                 imgs = X_train[idx]
                 self.sample_images(it, imgs)
 

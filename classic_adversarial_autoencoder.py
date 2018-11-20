@@ -151,7 +151,7 @@ class ClassicAdversarialAutoencoder():
         half_valid = np.ones((half_batch, 1))
         half_fake = np.zeros((half_batch, 1))
 
-        for it in range(iterations):
+        for it in range(iterations + 1):
             # ---------------------
             #  Regularization Phase
             # ---------------------
@@ -184,7 +184,7 @@ class ClassicAdversarialAutoencoder():
             # If at save interval => save generated image samples
             if it % sample_interval == 0:
                 # Select a random half batch of images
-                idx = np.random.randint(0, X_train.shape[0], 25)
+                idx = np.arange(0, 25)
                 imgs = X_train[idx]
                 self.sample_images(it, imgs)
 
