@@ -90,8 +90,8 @@ class Autoencoder():
         X_train = (X_train.astype(np.float32) - mean) / (std + 1e-7)
         print('Start training on {} images'.format(X_train.shape[0]))
 
-        if os.path.isfile('ae_autoencoder.h5'):
-            self.autoencoder.load_weights('ae_autoencoder.h5')
+        if os.path.isfile('models/ae_autoencoder.h5'):
+            self.autoencoder.load_weights('models/ae_autoencoder.h5')
             print('Loaded autoencoder weights!')
 
         for it in range(iterations):
@@ -122,7 +122,7 @@ class Autoencoder():
         plt.plot(np.arange(len(self.history['ae_loss'][::step])), self.history['ae_loss'][::step],
                  c='C0', label='autoencoder')
         plt.legend()
-        plt.savefig('ae_loss')
+        plt.savefig('figs/ae_loss')
 
         plt.figure()
         plt.title('Acc History')
@@ -132,7 +132,7 @@ class Autoencoder():
         plt.plot(np.arange(len(self.history['ae_acc'][::step])), self.history['ae_acc'][::step], c='C0',
                  label='autoencoder')
         plt.legend()
-        plt.savefig('ae_accuracy')
+        plt.savefig('figs/ae_accuracy')
 
     def sample_images(self, it, imgs):
         r, c = 5, 5
@@ -155,8 +155,8 @@ class Autoencoder():
         plt.close()
 
     def save_model(self):
-        self.autoencoder.save_weights('ae_autoencoder.h5')
-        with open('ae_history.pkl', 'wb') as f:
+        self.autoencoder.save_weights('models/ae_autoencoder.h5')
+        with open('models/ae_history.pkl', 'wb') as f:
             pickle.dump(self.history, f, pickle.HIGHEST_PROTOCOL)
 
 

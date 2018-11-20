@@ -149,9 +149,9 @@ class AdversarialAutoencoder():
         plt.ylabel('Loss')
         step = len(history['loss']) // 10 if len(history['loss']) > 1000 else 1
         plt.plot(np.arange(len(history['loss'][::step])), history['loss'][::step])
-        plt.savefig('pretrain ae')
+        plt.savefig('figs/pretrain_ae')
         
-        self.autoencoder.save_weights('aae_autoencoder.h5')
+        self.autoencoder.save_weights('models/aae_autoencoder.h5')
 
     def pretrain_discriminator(self, data, iterations, batch_size):
         half_batch = batch_size // 2
@@ -180,9 +180,9 @@ class AdversarialAutoencoder():
         plt.ylabel('Loss')
         step = len(history['loss']) // 10 if len(history['loss']) > 1000 else 1
         plt.plot(np.arange(len(history['loss'][::step])), history['loss'][::step])
-        plt.savefig('pretrain discriminator')
+        plt.savefig('figs/pretrain_discriminator')
 
-        self.discriminator.save_weights('aae_discriminator.h5')
+        self.discriminator.save_weights('models/aae_discriminator.h5')
 
     def train(self, iterations, pre_dis_iterations, pre_ae_iterations, batch_size=128, sample_interval=50, tolerance=20):
 
@@ -193,14 +193,14 @@ class AdversarialAutoencoder():
         X_train = (X_train.astype(np.float32) - mean) / (std + 1e-7)
         print('Start training on {} images'.format(X_train.shape[0]))
 
-        if os.path.isfile('aae_discriminator.h5'):
-            self.discriminator.load_weights('aae_discriminator.h5')
+        if os.path.isfile('models/aae_discriminator.h5'):
+            self.discriminator.load_weights('models/aae_discriminator.h5')
             print('Loaded discriminator weights!')
         elif pre_dis_iterations > 0:
             self.pretrain_discriminator(X_train, pre_dis_iterations, batch_size)
 
-        if os.path.isfile('aae_autoencoder.h5'):
-            self.autoencoder.load_weights('aae_autoencoder.h5')
+        if os.path.isfile('models/aae_autoencoder.h5'):
+            self.autoencoder.load_weights('models/aae_autoencoder.h5')
             print('Loaded autoencoder weights!')
         elif pre_ae_iterations > 0:
             self.pretrain_ae(X_train, pre_ae_iterations, batch_size)
@@ -255,7 +255,7 @@ class AdversarialAutoencoder():
         plt.plot(np.arange(len(self.history['g_loss'][::step])), self.history['g_loss'][::step],
                  c='C1', label='generator')
         plt.legend()
-        plt.savefig('aae_loss')
+        plt.savefig('figs/aae_loss')
 
         plt.figure()
         plt.title('Acc History')
@@ -267,7 +267,7 @@ class AdversarialAutoencoder():
         plt.plot(np.arange(len(self.history['g_acc'][::step])), self.history['g_acc'][::step], c='C1',
                  label='generator')
         plt.legend()
-        plt.savefig('aae_accuracy')
+        plt.savefig('figs/aae_accuracy')
 
     def sample_images(self, it, imgs):
         r, c = 5, 5
@@ -290,10 +290,10 @@ class AdversarialAutoencoder():
         plt.close()
 
     def save_model(self):
-        self.adversarial_autoencoder.save_weights('aae_adversarial_ae.h5')
-        self.discriminator.save_weights('aae_discriminator.h5')
-        self.autoencoder.save_weights('aae_autoencoder.h5')
-        with open('aae_history.pkl', 'wb') as f:
+        self.adversarial_autoencoder.save_weights('models/aae_adversarial_ae.h5')
+        self.discriminator.save_weights('models/aae_discriminator.h5')
+        self.autoencoder.save_weights('models/aae_autoencoder.h5')
+        with open('models/aae_history.pkl', 'wb') as f:
                 pickle.dump(self.history, f, pickle.HIGHEST_PROTOCOL)
 
 
