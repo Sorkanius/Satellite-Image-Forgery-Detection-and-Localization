@@ -81,37 +81,42 @@ class Autoencoder():
 
         return decoder
 
-    def train(self, iterations, batch_size=128, sample_interval=50, tolerance=20):
+    def train(self, epochs, batch_size=128, sample_epoch=1, sample_interval=50, tolerance=20):
 
         # Load the dataset
         X_train = np.load('data.npy')
         mean = np.mean(X_train, axis=(0, 1, 2, 3))
         std = np.std(X_train, axis=(0, 1, 2, 3))
         X_train = (X_train.astype(np.float32) - mean) / (std + 1e-7)
+        iterations = int(np.ceil(X_train.shape[0] / batch_size))
         print('Start training on {} images'.format(X_train.shape[0]))
-
+        print('There is a total of {} iterations per epoch'.format(iterations))
         if os.path.isfile('models/ae_autoencoder.h5'):
             self.autoencoder.load_weights('models/ae_autoencoder.h5')
             print('Loaded autoencoder weights!')
 
-        for it in range(iterations + 1):
+        for ep in range(epochs):
             # ---------------------
             #  Train Autoencoder
             # ---------------------
-            imgs = X_train[np.random.randint(0, X_train.shape[0], batch_size)]
-            ae_loss = self.autoencoder.train_on_batch(imgs, imgs)
-            self.history['ae_loss'].append(ae_loss[0])
-            self.history['ae_acc'].append(ae_loss[1])
+            index = np.arange(X_train.shape[0])
+            for it in range(iterations):
+                imgs_index = np.random.choice(index, min(batch_size, len(index)))
+                index = np.delete(index, imgs_index)
+                imgs = X_train[imgs_index]
+                ae_loss = self.autoencoder.train_on_batch(imgs, imgs)
+                self.history['ae_loss'].append(ae_loss[0])
+                self.history['ae_acc'].append(ae_loss[1])
 
-            print('[Training Autoencoder AE]---It {}/{} | loss: {:.4f} | acc: {:.2f} |'
-                  .format(it, iterations, ae_loss[0], ae_loss[-1]*100), end='\r', flush=True)
+                print('[Training Autoencoder AE]--- Epoch: {}/{} | It {}/{} | loss: {:.4f} | acc: {:.2f} |'
+                      .format(ep, epochs, it, iterations, ae_loss[0], ae_loss[-1]*100), end='\r', flush=True)
 
             # If at save interval => save generated image samples
-            if it % sample_interval == 0:
+            if ep % sample_epoch == 0:
                 # Select a random half batch of images
                 idx = np.arange(0, 25)
                 imgs = X_train[idx]
-                self.sample_images(it, imgs)
+                self.sample_images(ep, imgs)
 
     def plot(self):
         plt.figure()
@@ -165,16 +170,16 @@ class Autoencoder():
 def parse_arguments(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument('--batch_size', type=int, help='batch_size', default=128)
-    parser.add_argument('--it', type=int, help='number of iterations to train', default=10000)
+    parser.add_argument('--epochs', type=int, help='number of epochs to train', default=10000)
     return parser.parse_args(argv)
 
 
 if __name__ == '__main__':
     ae = Autoencoder()
     args = parse_arguments(sys.argv[1:])
-    print('Arguments: iterations {}'.format(args.it))
+    print('Arguments: Epochs {}'.format(args.epochs))
     try:
-        ae.train(iterations=args.it, batch_size=args.batch_size)
+        ae.train(epochs=args.epochs, batch_size=args.batch_size)
         ae.save_model()
         ae.plot()
     except KeyboardInterrupt:
