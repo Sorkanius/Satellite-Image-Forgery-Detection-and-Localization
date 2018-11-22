@@ -109,7 +109,7 @@ class Autoencoder():
                 self.history['ae_acc'].append(ae_loss[1])
 
                 print('[Training Autoencoder AE]--- Epoch: {}/{} | It {}/{} | loss: {:.4f} | acc: {:.2f} |'
-                      .format(ep, epochs, it, iterations, ae_loss[0], ae_loss[-1]*100), end='\r', flush=True)
+                      .format(ep + 1, epochs, it, iterations, ae_loss[0], ae_loss[-1]*100), end='\r', flush=True)
 
             # If at save interval => save generated image samples
             if ep % sample_epoch == 0:
@@ -170,7 +170,7 @@ class Autoencoder():
 def parse_arguments(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument('--batch_size', type=int, help='batch_size', default=128)
-    parser.add_argument('--epochs', type=int, help='number of epochs to train', default=10000)
+    parser.add_argument('--epochs', type=int, help='number of epochs to train', default=100)
     return parser.parse_args(argv)
 
 
