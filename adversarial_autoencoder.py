@@ -187,7 +187,7 @@ class AdversarialAutoencoder():
         self.discriminator.save_weights('models/aae_discriminator.h5')
 
     def train(self, epochs, pre_dis_iterations, pre_ae_iterations, batch_size=128,
-              sample_epoch=1, sample_interval=50, tolerance=20):
+              sample_epoch=1, sample_interval=50):
 
         # Load the dataset
         X_train = np.load('data.npy')
@@ -217,8 +217,8 @@ class AdversarialAutoencoder():
                 # ---------------------
                 #  Train Discriminator
                 # ---------------------
-                imgs_index_dis = np.random.choice(index_dis, min(batch_size, len(index_dis)))
 
+                imgs_index_dis = np.random.choice(index_dis, min(batch_size, len(index_dis)))
                 index_dis = np.delete(index_dis, imgs_index_dis)
                 imgs = X_train[imgs_index_dis]
                 generated_imgs = self.autoencoder.predict(imgs)

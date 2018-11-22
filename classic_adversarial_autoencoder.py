@@ -131,14 +131,16 @@ class ClassicAdversarialAutoencoder():
 
         self.autoencoder.save_weights('models/c_aae_autoencoder.h5')
 
-    def train(self, iterations, pre_ae_iterations, batch_size=128, sample_interval=50):
+    def train(self, epochs, pre_ae_iterations, batch_size=128, sample_epoch=1, sample_interval=50):
 
         # Load the dataset
         X_train = np.load('data.npy')
         mean = np.mean(X_train, axis=(0, 1, 2, 3))
         std = np.std(X_train, axis=(0, 1, 2, 3))
         X_train = (X_train.astype(np.float32) - mean) / (std + 1e-7)
+        iterations = int(np.ceil(X_train.shape[0] / batch_size))
         print('Start training on {} images'.format(X_train.shape[0]))
+        print('There is a total of {} iterations per epoch'.format(iterations))
 
         if os.path.isfile('models/c_aae_autoencoder.h5'):
             self.autoencoder.load_weights('models/c_aae_autoencoder.h5')
@@ -146,47 +148,51 @@ class ClassicAdversarialAutoencoder():
         elif pre_ae_iterations > 0:
             self.pretrain_ae(X_train, pre_ae_iterations, batch_size)
 
-        valid = np.ones((batch_size, 1))
-        half_batch = batch_size // 2
-        half_valid = np.ones((half_batch, 1))
-        half_fake = np.zeros((half_batch, 1))
+        for ep in range(epochs):
+            index_reg = np.arange(X_train.shape[0])
+            index_rec = np.arange(X_train.shape[0])
+            for it in range(iterations):
+                # ---------------------
+                #  Regularization Phase
+                # ---------------------
+                imgs_index_reg = np.random.choice(index_reg, min(batch_size, len(index_reg)))
+                index_reg = np.delete(index_reg, min(batch_size, len(index_reg)))
+                imgs = X_train[imgs_index_reg]
+                latent_fake = self.encoder.predict(imgs)
+                latent_real = np.asarray(self.generate_p_sample(batch_size))
 
-        for it in range(iterations + 1):
-            # ---------------------
-            #  Regularization Phase
-            # ---------------------
-            imgs = X_train[np.random.randint(0, X_train.shape[0], half_batch)]
-            latent_fake = self.encoder.predict(imgs)
-            latent_real = np.asarray(self.generate_p_sample(half_batch))
+                reg_loss_real = self.discriminator.train_on_batch(latent_real,
+                                                                  np.ones((min(batch_size, len(index_reg)), 1)))
+                reg_loss_fake = self.discriminator.train_on_batch(latent_fake.reshape(batch_size, self.latent_shape),
+                                                                  np.zeros((min(batch_size, len(index_reg)), 1)))
+                reg_loss = 0.5 * np.add(reg_loss_real, reg_loss_fake)
 
-            reg_loss_real = self.discriminator.train_on_batch(latent_real, half_valid)
-            # reg_loss_real = self.discriminator.train_on_batch(latent_real, half_valid)
-            reg_loss_fake = self.discriminator.train_on_batch(latent_fake.reshape(64, 2048), half_fake)
-            reg_loss = 0.5 * np.add(reg_loss_real, reg_loss_fake)
+                self.history['reg_loss'].append(reg_loss[0])
+                self.history['reg_acc'].append(reg_loss[1] * 100)
 
-            self.history['reg_loss'].append(reg_loss[0])
-            self.history['reg_acc'].append(reg_loss[1] * 100)
+                # ---------------------
+                #  Reconstruction Phase
+                # ---------------------
+                imgs_index_rec = np.random.choice(index_rec, min(batch_size, len(index_rec)))
+                index_rec = np.delete(index_rec, imgs_index_rec)
+                imgs = X_train[imgs_index_rec]
+                rec_loss = self.adversarial_autoencoder.train_on_batch(imgs,
+                                                                       [imgs, np.ones((min(batch_size, len(index_rec)), 1))])
+                self.history['rec_loss'].append(rec_loss[0])
+                self.history['rec_acc'].append(rec_loss[-1]*100)
 
-            # ---------------------
-            #  Reconstruction Phase
-            # ---------------------
-            imgs = X_train[np.random.randint(0, X_train.shape[0], batch_size)]
-            rec_loss = self.adversarial_autoencoder.train_on_batch(imgs, [imgs, valid])
-            self.history['rec_loss'].append(rec_loss[0])
-            self.history['rec_acc'].append(rec_loss[-1]*100)
-
-            print('[Training Adversarial AE]---It {}/{} |'
-                  ' reg_loss: {:.4f} | reg_acc: {:.2f} |'
-                  ' rec_loss: {:.4f} | rec_acc: {:.2f}'
-                  .format(it, iterations, reg_loss[0],
-                          reg_loss[1] * 100, rec_loss[0], rec_loss[-1] * 100), end='\r', flush=True)
+                print('[Training Adversarial AE]--- Epoch: {}/{} | It {}/{} |'
+                      ' reg_loss: {:.4f} | reg_acc: {:.2f} |'
+                      ' rec_loss: {:.4f} | rec_acc: {:.2f}'
+                      .format(ep + 1, epochs, it, iterations, reg_loss[0],
+                              reg_loss[1] * 100, rec_loss[0], rec_loss[-1] * 100), end='\r', flush=True)
 
             # If at save interval => save generated image samples
-            if it % sample_interval == 0:
+            if ep % sample_interval == 0:
                 # Select a random half batch of images
                 idx = np.arange(0, 25)
                 imgs = X_train[idx]
-                self.sample_images(it, imgs)
+                self.sample_images(ep, imgs)
 
     def plot(self):
         plt.figure()
@@ -246,9 +252,9 @@ class ClassicAdversarialAutoencoder():
 def parse_arguments(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument('--batch_size', type=int, help='batch_size', default=128)
-    parser.add_argument('--it', type=int, help='number of iterations to train', default=10000)
+    parser.add_argument('--epochs', type=int, help='number of iterations to train', default=100)
     parser.add_argument('--ae_it', type=int,
-                        help='number of epochs to pretrain the autoencoder', default=20000)
+                        help='number of epochs to pretrain the autoencoder', default=0)
     return parser.parse_args(argv)
 
 
@@ -256,9 +262,9 @@ if __name__ == '__main__':
     c_aae = ClassicAdversarialAutoencoder()
     args = parse_arguments(sys.argv[1:])
     print('Arguments: iterations {}, pre_ae_iterations {}, batch_size {}'.format(
-        args.it, args.ae_it, args.batch_size))
+        args.epochs, args.ae_it, args.batch_size))
     try:
-        c_aae.train(iterations=args.it, pre_ae_iterations=args.ae_it, batch_size=args.batch_size)
+        c_aae.train(epochs=args.epochs, pre_ae_iterations=args.ae_it, batch_size=args.batch_size)
         c_aae.save_model()
         c_aae.plot()
     except KeyboardInterrupt:

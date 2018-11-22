@@ -81,7 +81,7 @@ class Autoencoder():
 
         return decoder
 
-    def train(self, epochs, batch_size=128, sample_epoch=1, sample_interval=50, tolerance=20):
+    def train(self, epochs, batch_size=128, sample_epoch=1, sample_interval=50):
 
         # Load the dataset
         X_train = np.load('data.npy')
