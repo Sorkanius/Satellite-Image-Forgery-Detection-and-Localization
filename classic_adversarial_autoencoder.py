@@ -98,8 +98,8 @@ class ClassicAdversarialAutoencoder():
     def build_discriminator(self):
         # Discriminador
         discriminator = Sequential()
-        discriminator.add(Dense(128, activation="relu", input_shape=(self.latent_shape,)))
-        discriminator.add(Dense(128, activation="relu"))
+        discriminator.add(Dense(256, activation="relu", input_shape=(self.latent_shape,)))
+        discriminator.add(Dense(256, activation="relu"))
         discriminator.add(Dense(1, activation="sigmoid"))
 
         discriminator.summary()
@@ -188,7 +188,7 @@ class ClassicAdversarialAutoencoder():
                               reg_loss[1] * 100, rec_loss[0], rec_loss[-1] * 100), end='\r', flush=True)
 
             # If at save interval => save generated image samples
-            if ep % sample_interval == 0:
+            if ep % sample_epoch == 0:
                 # Select a random half batch of images
                 idx = np.arange(0, 25)
                 imgs = X_train[idx]
