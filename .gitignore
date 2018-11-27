@@ -9,3 +9,4 @@ data/
 __pychache__/*
 *.sav
 trainings/
+.ipynb_checkpoints/
