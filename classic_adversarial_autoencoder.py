@@ -124,7 +124,7 @@ class ClassicAdversarialAutoencoder():
         plt.title('Pretrain AE')
         plt.xlabel('Iter')
         plt.ylabel('Loss')
-        step = len(history['loss']) // 10 if len(history['loss']) > 1000 else 1
+        step = len(history['loss']) // 10 if len(history['loss']) > 100000 else 1
         plt.plot(np.arange(len(history['loss'][::step])), history['loss'][::step])
         plt.grid()
         plt.savefig('figs/c_aae_pretrain_ae')
@@ -199,7 +199,7 @@ class ClassicAdversarialAutoencoder():
         plt.title('Loss History')
         plt.xlabel('Iter')
         plt.ylabel('Loss')
-        step = len(self.history['rec_loss']) // 10 if len(self.history['rec_loss']) > 1000 else 1
+        step = len(self.history['rec_loss']) // 10 if len(self.history['rec_loss']) > 100000 else 1
         plt.plot(np.arange(len(self.history['rec_loss'][::step])), self.history['rec_loss'][::step],
                  c='C0', label='reconstruction loss')
         plt.plot(np.arange(len(self.history['reg_loss'][::step])), self.history['reg_loss'][::step],
@@ -212,7 +212,7 @@ class ClassicAdversarialAutoencoder():
         plt.title('Acc History')
         plt.xlabel('Iter')
         plt.ylabel('Acc')
-        step = len(self.history['rec_acc']) // 10 if len(self.history['rec_acc']) > 1000 else 1
+        step = len(self.history['rec_acc']) // 10 if len(self.history['rec_acc']) > 100000 else 1
         plt.plot(np.arange(len(self.history['rec_acc'][::step])), self.history['rec_acc'][::step], c='C0',
                  label='reconstruction')
         plt.plot(np.arange(len(self.history['reg_acc'][::step])), self.history['reg_acc'][::step], c='C1',

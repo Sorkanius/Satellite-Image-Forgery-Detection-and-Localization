@@ -29,7 +29,7 @@ if __name__ == '__main__':
     plt.title('Loss History')
     plt.xlabel('Iter')
     plt.ylabel('Loss')
-    step = len(c_aae_history['rec_loss']) // 10 if len(c_aae_history['rec_loss']) > 1000 else 1
+    step = len(c_aae_history['rec_loss']) // 10 if len(c_aae_history['rec_loss']) > 100000 else 1
     plt.plot(np.arange(len(c_aae_history['rec_loss'][::step])), c_aae_history['rec_loss'][::step],
              c='C0', label='Classic AAE')
     plt.plot(np.arange(len(aae_history['g_loss'][::step])), aae_history['g_loss'][::step],

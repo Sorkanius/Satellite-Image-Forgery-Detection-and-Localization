@@ -123,7 +123,7 @@ class Autoencoder():
         plt.title('Loss History')
         plt.xlabel('Iter')
         plt.ylabel('Loss')
-        step = len(self.history['ae_loss']) // 10 if len(self.history['ae_loss']) > 1000 else 1
+        step = len(self.history['ae_loss']) // 10 if len(self.history['ae_loss']) > 100000 else 1
         plt.plot(np.arange(len(self.history['ae_loss'][::step])), self.history['ae_loss'][::step],
                  c='C0', label='autoencoder')
         plt.legend()
@@ -134,7 +134,7 @@ class Autoencoder():
         plt.title('Acc History')
         plt.xlabel('Iter')
         plt.ylabel('Acc')
-        step = len(self.history['ae_acc']) // 10 if len(self.history['ae_acc']) > 1000 else 1
+        step = len(self.history['ae_acc']) // 10 if len(self.history['ae_acc']) > 100000 else 1
         plt.plot(np.arange(len(self.history['ae_acc'][::step])), self.history['ae_acc'][::step], c='C0',
                  label='autoencoder')
         plt.legend()

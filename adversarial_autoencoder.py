@@ -147,7 +147,7 @@ class AdversarialAutoencoder():
         plt.title('Pretrain AE')
         plt.xlabel('Iter')
         plt.ylabel('Loss')
-        step = len(history['loss']) // 10 if len(history['loss']) > 1000 else 1
+        step = len(history['loss']) // 10 if len(history['loss']) > 100000 else 1
         plt.plot(np.arange(len(history['loss'][::step])), history['loss'][::step])
         plt.grid()
         plt.savefig('figs/pretrain_ae')
@@ -179,7 +179,7 @@ class AdversarialAutoencoder():
         plt.title('Pretrain Discriminator')
         plt.xlabel('Iter')
         plt.ylabel('Loss')
-        step = len(history['loss']) // 10 if len(history['loss']) > 1000 else 1
+        step = len(history['loss']) // 10 if len(history['loss']) > 100000 else 1
         plt.plot(np.arange(len(history['loss'][::step])), history['loss'][::step])
         plt.grid()
         plt.savefig('figs/pretrain_discriminator')
@@ -260,7 +260,7 @@ class AdversarialAutoencoder():
         plt.title('Loss History')
         plt.xlabel('Iter')
         plt.ylabel('Loss')
-        step = len(self.history['d_loss']) // 10 if len(self.history['d_loss']) > 1000 else 1
+        step = len(self.history['d_loss']) // 10 if len(self.history['d_loss']) > 100000 else 1
         plt.plot(np.arange(len(self.history['d_loss'][::step])), self.history['d_loss'][::step],
                  c='C0', label='discriminator')
         plt.plot(np.arange(len(self.history['g_loss'][::step])), self.history['g_loss'][::step],
@@ -273,7 +273,7 @@ class AdversarialAutoencoder():
         plt.title('Acc History')
         plt.xlabel('Iter')
         plt.ylabel('Acc')
-        step = len(self.history['d_acc']) // 10 if len(self.history['d_acc']) > 1000 else 1
+        step = len(self.history['d_acc']) // 10 if len(self.history['d_acc']) > 100000 else 1
         plt.plot(np.arange(len(self.history['d_acc'][::step])), self.history['d_acc'][::step], c='C0',
                  label='discriminator')
         plt.plot(np.arange(len(self.history['g_acc'][::step])), self.history['g_acc'][::step], c='C1',
