@@ -8,3 +8,4 @@ data/
 *.pkl
 __pychache__/*
 *.sav
+trainings/

@@ -26,6 +26,7 @@ if __name__ == '__main__':
     with open(models_dir + 'ae_history.pkl', 'rb') as input_file:
         ae_history = pickle.load(input_file)
 
+    plt.figure()
     plt.title('Loss History')
     plt.xlabel('Iter')
     plt.ylabel('Loss')
@@ -44,3 +45,19 @@ if __name__ == '__main__':
     else:
         plt.show()
 
+    plt.figure()
+    plt.title('Accuracy History')
+    plt.xlabel('Iter')
+    plt.ylabel('Acc')
+    step = len(c_aae_history['reg_acc']) // 10 if len(c_aae_history['reg_acc']) > 100000 else 1
+    plt.plot(np.arange(len(c_aae_history['reg_acc'][::step])), c_aae_history['reg_acc'][::step],
+             c='C0', label='Discriminator - Classic AAE')
+    plt.plot(np.arange(len(aae_history['d_acc'][::step])), aae_history['d_acc'][::step],
+             c='C1', label='Discriminator - AAE')
+    plt.legend()
+    plt.grid()
+
+    if args.save:
+        plt.savefig('results/accuracy')
+    else:
+        plt.show()
