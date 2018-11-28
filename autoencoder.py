@@ -113,7 +113,7 @@ class Autoencoder():
 
             # If at save interval => save generated image samples
             if ep % sample_epoch == 0:
-                # Select a random half batch of images
+                # Select some images to see how the reconstruction gets better
                 idx = np.arange(0, 25)
                 imgs = X_train[idx]
                 self.sample_images(ep, imgs)
