@@ -230,6 +230,10 @@ class ClassicAdversarialAutoencoder():
                  c='C0', label='reconstruction loss')
         plt.plot(np.arange(len(self.history['reg_loss'][::step])), self.history['reg_loss'][::step],
                  c='C1', label='regularization loss')
+        plt.plot(np.arange(len(self.history['rec_loss'][::step])), self.history['rec_test_loss'][::step],
+                 c='C2', label='reconstruction test loss')
+        plt.plot(np.arange(len(self.history['reg_loss'][::step])), self.history['reg_test_loss'][::step],
+                 c='C3', label='regularization test loss')
         plt.legend()
         plt.grid()
         plt.savefig('figs/c_aae_loss')
@@ -243,6 +247,10 @@ class ClassicAdversarialAutoencoder():
                  label='reconstruction')
         plt.plot(np.arange(len(self.history['reg_acc'][::step])), self.history['reg_acc'][::step], c='C1',
                  label='regularization')
+        plt.plot(np.arange(len(self.history['rec_acc'][::step])), self.history['rec_acc'][::step], c='C2',
+                 label='reconstruction test')
+        plt.plot(np.arange(len(self.history['reg_test_acc'][::step])), self.history['reg_test_acc'][::step], c='C3',
+                 label='regularization test')
         plt.legend()
         plt.grid()
         plt.savefig('figs/c_aae_accuracy')
@@ -264,7 +272,7 @@ class ClassicAdversarialAutoencoder():
                 axs[i, j].imshow(gen_imgs[cnt])
                 axs[i, j].axis('off')
                 cnt += 1
-        fig.savefig('images/{}_c_aae_%d.png'.format(plot, it))
+        fig.savefig('images/{}_c_aae_{}.png'.format(plot, it))
         plt.close()
 
     def save_model(self):
