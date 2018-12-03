@@ -91,7 +91,6 @@ class Autoencoder():
         X_train = dataset[np.arange(0, int(np.floor(dataset.shape[0]*train_prop)))]
         X_test = dataset[np.arange(int(np.floor(dataset.shape[0]*train_prop)), dataset.shape[0])]
         iterations = int(np.ceil(X_train.shape[0] / batch_size))
-        test_iterations = int(np.ceil(X_test.shape[0] / batch_size))
         print('Start training on {} images and {} test images'.format(X_train.shape[0], X_test.shape[0]))
         print('There is a total of {} iterations per epoch'.format(iterations))
         if os.path.isfile('models/ae_autoencoder.h5'):
@@ -127,7 +126,7 @@ class Autoencoder():
                 imgs = X_train[idx]
                 self.sample_images(ep, imgs)
                 test_imgs = X_test[idx]
-                self.sample_images(ep, test_imgs, type='test')
+                self.sample_images(ep, test_imgs, plot='test')
 
     def plot(self):
         plt.figure()
@@ -156,7 +155,7 @@ class Autoencoder():
         plt.grid()
         plt.savefig('figs/ae_accuracy')
 
-    def sample_images(self, it, imgs, type='train'):
+    def sample_images(self, it, imgs, plot='train'):
         r, c = 5, 5
 
         if not os.path.isdir('images'):
@@ -173,7 +172,7 @@ class Autoencoder():
                 axs[i, j].imshow(gen_imgs[cnt])
                 axs[i, j].axis('off')
                 cnt += 1
-        fig.savefig('images/{}_ae_{}.png'.format(type, it))
+        fig.savefig('images/{}_ae_{}.png'.format(plot, it))
         plt.close()
 
     def save_model(self):

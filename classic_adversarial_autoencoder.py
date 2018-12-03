@@ -27,7 +27,8 @@ class ClassicAdversarialAutoencoder():
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
         self.encoded_shape = (4, 4, 128)
         self.latent_shape = self.encoded_shape[0] * self.encoded_shape[1] * self.encoded_shape[2]
-        self.history = {'rec_loss': [], 'rec_acc': [], 'reg_loss': [], 'reg_acc': []}
+        self.history = {'rec_loss': [], 'rec_acc': [], 'rec_test_loss': [], 'rec_test_acc': [],
+                        'reg_loss': [], 'reg_acc': [], 'reg_test_loss': [], 'reg_test_acc': []}
 
         optimizer = Adam(0.0005, 0.5)
 
@@ -131,15 +132,17 @@ class ClassicAdversarialAutoencoder():
 
         self.autoencoder.save_weights('models/c_aae_autoencoder.h5')
 
-    def train(self, epochs, pre_ae_iterations, batch_size=128, sample_epoch=1, sample_interval=50):
+    def train(self, epochs, pre_ae_iterations, batch_size=128, sample_epoch=1, sample_interval=50, train_prop=0.85):
 
         # Load the dataset
-        X_train = np.load('data.npy')
-        mean = np.mean(X_train, axis=(0, 1, 2, 3))
-        std = np.std(X_train, axis=(0, 1, 2, 3))
-        X_train = (X_train.astype(np.float32) - mean) / (std + 1e-7)
+        dataset = np.load('data.npy')
+        mean = np.mean(dataset, axis=(0, 1, 2, 3))
+        std = np.std(dataset, axis=(0, 1, 2, 3))
+        dataset = (dataset.astype(np.float32) - mean) / (std + 1e-7)
+        X_train = dataset[np.arange(0, int(np.floor(dataset.shape[0]*train_prop)))]
+        X_test = dataset[np.arange(int(np.floor(dataset.shape[0]*train_prop)), dataset.shape[0])]
         iterations = int(np.ceil(X_train.shape[0] / batch_size))
-        print('Start training on {} images'.format(X_train.shape[0]))
+        print('Start training on {} images and {} test images'.format(X_train.shape[0], X_test.shape[0]))
         print('There is a total of {} iterations per epoch'.format(iterations))
 
         if os.path.isfile('models/c_aae_autoencoder.h5'):
@@ -158,17 +161,27 @@ class ClassicAdversarialAutoencoder():
                 imgs_index_reg = np.random.choice(index_reg, min(batch_size, len(index_reg)))
                 index_reg = np.delete(index_reg, min(batch_size, len(index_reg)))
                 imgs = X_train[imgs_index_reg]
+                test_imgs = X_test[np.random.randint(0, X_test.shape[0], batch_size)]
                 latent_fake = self.encoder.predict(imgs)
+                latent_fake_test = self.encoder.predict(test_imgs)
                 latent_real = np.asarray(self.generate_p_sample(batch_size))
-
+                latent_real_test = np.asarray(self.generate_p_sample(batch_size))
                 reg_loss_real = self.discriminator.train_on_batch(latent_real,
                                                                   np.ones((min(batch_size, len(index_reg)), 1)))
                 reg_loss_fake = self.discriminator.train_on_batch(latent_fake.reshape(batch_size, self.latent_shape),
                                                                   np.zeros((min(batch_size, len(index_reg)), 1)))
                 reg_loss = 0.5 * np.add(reg_loss_real, reg_loss_fake)
 
+                reg_test_loss_real = self.discriminator.test_on_batch(latent_real_test,
+                                                                      np.ones((min(batch_size, len(index_reg)), 1)))
+                reg_test_loss_fake = self.discriminator.test_on_batch(latent_fake_test.reshape(batch_size,
+                                                                                               self.latent_shape),
+                                                                      np.zeros((min(batch_size, len(index_reg)), 1)))
+                reg_test_loss = 0.5 * np.add(reg_test_loss_real, reg_test_loss_fake)
                 self.history['reg_loss'].append(reg_loss[0])
                 self.history['reg_acc'].append(reg_loss[1] * 100)
+                self.history['reg_test_loss'].append(reg_test_loss[0])
+                self.history['reg_test_acc'].append(reg_test_loss[1] * 100)
 
                 # ---------------------
                 #  Reconstruction Phase
@@ -176,16 +189,27 @@ class ClassicAdversarialAutoencoder():
                 imgs_index_rec = np.random.choice(index_rec, min(batch_size, len(index_rec)))
                 index_rec = np.delete(index_rec, imgs_index_rec)
                 imgs = X_train[imgs_index_rec]
+                test_imgs = X_test[np.random.randint(0, X_test.shape[0], batch_size)]
                 rec_loss = self.adversarial_autoencoder.train_on_batch(imgs,
-                                                                       [imgs, np.ones((min(batch_size, len(index_rec)), 1))])
+                                                                       [imgs, np.ones((min(batch_size, len(index_rec)),
+                                                                                       1))])
+                rec_test_loss = self.adversarial_autoencoder.test_on_batch(test_imgs,
+                                                                           [test_imgs,
+                                                                            np.ones((min(batch_size,
+                                                                                         len(index_rec)), 1))])
                 self.history['rec_loss'].append(rec_loss[0])
                 self.history['rec_acc'].append(rec_loss[-1]*100)
+                self.history['rec_test_loss'].append(rec_test_loss[0])
+                self.history['rec_test_acc'].append(rec_test_loss[-1]*100)
 
-                print('[Training Adversarial AE]--- Epoch: {}/{} | It {}/{} |'
-                      ' reg_loss: {:.4f} | reg_acc: {:.2f} |'
-                      ' rec_loss: {:.4f} | rec_acc: {:.2f}'
+                print('[Training Adversarial AE]--- Epoch: {}/{} | It {}/{} | '
+                      'reg_loss: {:.4f} | reg_acc: {:.2f} | '
+                      'rec_loss: {:.4f} | rec_acc: {:.2f} | '
+                      'reg_test_loss: {:.4f} | reg_test_acc: {:.2f} | '
+                      'rec_test_loss: {:.4f} | rec_test_acc: {:.2f} | '
                       .format(ep + 1, epochs, it, iterations, reg_loss[0],
-                              reg_loss[1] * 100, rec_loss[0], rec_loss[-1] * 100), end='\r', flush=True)
+                              reg_loss[1] * 100, rec_loss[0], rec_loss[-1] * 100, reg_test_loss[0],
+                              reg_test_loss[1] * 100, rec_test_loss[0], rec_test_loss[-1] * 100), end='\r', flush=True)
 
             # If at save interval => save generated image samples
             if ep % sample_epoch == 0:
@@ -193,6 +217,8 @@ class ClassicAdversarialAutoencoder():
                 idx = np.arange(0, 25)
                 imgs = X_train[idx]
                 self.sample_images(ep, imgs)
+                test_imgs = X_test[idx]
+                self.sample_images(ep, test_imgs, plot='test')
 
     def plot(self):
         plt.figure()
@@ -221,7 +247,7 @@ class ClassicAdversarialAutoencoder():
         plt.grid()
         plt.savefig('figs/c_aae_accuracy')
 
-    def sample_images(self, it, imgs):
+    def sample_images(self, it, imgs, plot='train'):
         r, c = 5, 5
 
         if not os.path.isdir('images'):
@@ -238,7 +264,7 @@ class ClassicAdversarialAutoencoder():
                 axs[i, j].imshow(gen_imgs[cnt])
                 axs[i, j].axis('off')
                 cnt += 1
-        fig.savefig('images/c_aae_%d.png' % it)
+        fig.savefig('images/{}_c_aae_%d.png'.format(plot, it))
         plt.close()
 
     def save_model(self):
@@ -255,6 +281,7 @@ def parse_arguments(argv):
     parser.add_argument('--epochs', type=int, help='number of iterations to train', default=100)
     parser.add_argument('--ae_it', type=int,
                         help='number of epochs to pretrain the autoencoder', default=0)
+    parser.add_argument('--train_prop', type=int, help='Proportion of train set', default=0.85)
     return parser.parse_args(argv)
 
 
@@ -264,7 +291,8 @@ if __name__ == '__main__':
     print('Arguments: iterations {}, pre_ae_iterations {}, batch_size {}'.format(
         args.epochs, args.ae_it, args.batch_size))
     try:
-        c_aae.train(epochs=args.epochs, pre_ae_iterations=args.ae_it, batch_size=args.batch_size)
+        c_aae.train(epochs=args.epochs, pre_ae_iterations=args.ae_it, batch_size=args.batch_size,
+                    train_prop=args.train_prop)
         c_aae.save_model()
         c_aae.plot()
     except KeyboardInterrupt:
