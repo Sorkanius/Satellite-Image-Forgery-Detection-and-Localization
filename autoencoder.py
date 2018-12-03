@@ -81,7 +81,7 @@ class Autoencoder():
 
         return decoder
 
-    def train(self, epochs, batch_size=128, sample_epoch=1, sample_interval=50, train_prop=0.85):
+    def train(self, epochs, batch_size=128, sample_epoch=1, sample_interval=50, train_prop=0.8):
 
         # Load the dataset
         dataset = np.load('data.npy')
@@ -185,14 +185,14 @@ def parse_arguments(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument('--batch_size', type=int, help='batch_size', default=128)
     parser.add_argument('--epochs', type=int, help='number of epochs to train', default=100)
-    parser.add_argument('--train_prop', type=int, help='Proportion of train set', default=0.85)
+    parser.add_argument('--train_prop', type=int, help='Proportion of train set', default=0.8)
     return parser.parse_args(argv)
 
 
 if __name__ == '__main__':
     ae = Autoencoder()
     args = parse_arguments(sys.argv[1:])
-    print('Arguments: Epochs {}'.format(args.epochs))
+    print('Arguments: Epochs {}, batch_size {}, train_prop {}'.format(args.epochs, args.epochs, args.train_prop))
     try:
         ae.train(epochs=args.epochs, batch_size=args.batch_size, train_prop=args.train_prop)
         ae.save_model()

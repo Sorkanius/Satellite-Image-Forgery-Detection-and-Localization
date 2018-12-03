@@ -132,7 +132,7 @@ class ClassicAdversarialAutoencoder():
 
         self.autoencoder.save_weights('models/c_aae_autoencoder.h5')
 
-    def train(self, epochs, pre_ae_iterations, batch_size=128, sample_epoch=1, sample_interval=50, train_prop=0.85):
+    def train(self, epochs, pre_ae_iterations, batch_size=128, sample_epoch=1, sample_interval=50, train_prop=0.8):
 
         # Load the dataset
         dataset = np.load('data.npy')
@@ -166,17 +166,17 @@ class ClassicAdversarialAutoencoder():
                 latent_fake_test = self.encoder.predict(test_imgs)
                 latent_real = np.asarray(self.generate_p_sample(batch_size))
                 latent_real_test = np.asarray(self.generate_p_sample(batch_size))
+
                 reg_loss_real = self.discriminator.train_on_batch(latent_real,
                                                                   np.ones((min(batch_size, len(index_reg)), 1)))
                 reg_loss_fake = self.discriminator.train_on_batch(latent_fake.reshape(batch_size, self.latent_shape),
                                                                   np.zeros((min(batch_size, len(index_reg)), 1)))
                 reg_loss = 0.5 * np.add(reg_loss_real, reg_loss_fake)
 
-                reg_test_loss_real = self.discriminator.test_on_batch(latent_real_test,
-                                                                      np.ones((min(batch_size, len(index_reg)), 1)))
+                reg_test_loss_real = self.discriminator.test_on_batch(latent_real_test, np.ones((batch_size, 1)))
                 reg_test_loss_fake = self.discriminator.test_on_batch(latent_fake_test.reshape(batch_size,
                                                                                                self.latent_shape),
-                                                                      np.zeros((min(batch_size, len(index_reg)), 1)))
+                                                                      np.zeros((batch_size, 1)))
                 reg_test_loss = 0.5 * np.add(reg_test_loss_real, reg_test_loss_fake)
                 self.history['reg_loss'].append(reg_loss[0])
                 self.history['reg_acc'].append(reg_loss[1] * 100)
@@ -194,9 +194,7 @@ class ClassicAdversarialAutoencoder():
                                                                        [imgs, np.ones((min(batch_size, len(index_rec)),
                                                                                        1))])
                 rec_test_loss = self.adversarial_autoencoder.test_on_batch(test_imgs,
-                                                                           [test_imgs,
-                                                                            np.ones((min(batch_size,
-                                                                                         len(index_rec)), 1))])
+                                                                           [test_imgs, np.ones((batch_size, 1))])
                 self.history['rec_loss'].append(rec_loss[0])
                 self.history['rec_acc'].append(rec_loss[-1]*100)
                 self.history['rec_test_loss'].append(rec_test_loss[0])
@@ -230,9 +228,9 @@ class ClassicAdversarialAutoencoder():
                  c='C0', label='reconstruction loss')
         plt.plot(np.arange(len(self.history['reg_loss'][::step])), self.history['reg_loss'][::step],
                  c='C1', label='regularization loss')
-        plt.plot(np.arange(len(self.history['rec_loss'][::step])), self.history['rec_test_loss'][::step],
+        plt.plot(np.arange(len(self.history['rec_test_loss'][::step])), self.history['rec_test_loss'][::step],
                  c='C2', label='reconstruction test loss')
-        plt.plot(np.arange(len(self.history['reg_loss'][::step])), self.history['reg_test_loss'][::step],
+        plt.plot(np.arange(len(self.history['reg_test_loss'][::step])), self.history['reg_test_loss'][::step],
                  c='C3', label='regularization test loss')
         plt.legend()
         plt.grid()
@@ -247,7 +245,7 @@ class ClassicAdversarialAutoencoder():
                  label='reconstruction')
         plt.plot(np.arange(len(self.history['reg_acc'][::step])), self.history['reg_acc'][::step], c='C1',
                  label='regularization')
-        plt.plot(np.arange(len(self.history['rec_acc'][::step])), self.history['rec_acc'][::step], c='C2',
+        plt.plot(np.arange(len(self.history['rec_test_acc'][::step])), self.history['rec_test_acc'][::step], c='C2',
                  label='reconstruction test')
         plt.plot(np.arange(len(self.history['reg_test_acc'][::step])), self.history['reg_test_acc'][::step], c='C3',
                  label='regularization test')
@@ -289,15 +287,15 @@ def parse_arguments(argv):
     parser.add_argument('--epochs', type=int, help='number of iterations to train', default=100)
     parser.add_argument('--ae_it', type=int,
                         help='number of epochs to pretrain the autoencoder', default=0)
-    parser.add_argument('--train_prop', type=int, help='Proportion of train set', default=0.85)
+    parser.add_argument('--train_prop', type=int, help='Proportion of train set', default=0.8)
     return parser.parse_args(argv)
 
 
 if __name__ == '__main__':
     c_aae = ClassicAdversarialAutoencoder()
     args = parse_arguments(sys.argv[1:])
-    print('Arguments: iterations {}, pre_ae_iterations {}, batch_size {}'.format(
-        args.epochs, args.ae_it, args.batch_size))
+    print('Arguments: iterations {}, pre_ae_iterations {}, batch_size {}, train_prop {}'.format(
+        args.epochs, args.ae_it, args.batch_size, args.train_prop))
     try:
         c_aae.train(epochs=args.epochs, pre_ae_iterations=args.ae_it, batch_size=args.batch_size,
                     train_prop=args.train_prop)
