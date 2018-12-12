@@ -28,7 +28,7 @@ class Autoencoder():
         self.encoded_shape = (4, 4, 128)
         self.history = {'ae_loss': [], 'ae_acc': [], 'ae_test_loss': [], 'ae_test_acc': []}
 
-        optimizer = Adam(0.0005, 0.5)
+        optimizer = Adam(0.001, 0.5)
 
         # Build and compile the encoder / decoder
         self.encoder = self.build_encoder()

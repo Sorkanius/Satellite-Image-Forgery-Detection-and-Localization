@@ -1,6 +1,6 @@
 from __future__ import print_function, division
 
-from keras.layers import Input, Dense, Flatten
+from keras.layers import Input, Dense, Flatten, Dropout
 from keras.layers import BatchNormalization, Activation
 from keras.layers.convolutional import Conv2D, Conv2DTranspose
 from keras.models import Sequential, Model
@@ -30,7 +30,7 @@ class ClassicAdversarialAutoencoder():
         self.history = {'rec_loss': [], 'rec_acc': [], 'rec_test_loss': [], 'rec_test_acc': [],
                         'reg_loss': [], 'reg_acc': [], 'reg_test_loss': [], 'reg_test_acc': []}
 
-        optimizer = Adam(0.0005, 0.5)
+        optimizer = Adam(0.001, 0.5)
 
         # Build discriminator
         self.discriminator = self.build_discriminator()
@@ -99,8 +99,10 @@ class ClassicAdversarialAutoencoder():
     def build_discriminator(self):
         # Discriminador
         discriminator = Sequential()
-        discriminator.add(Dense(128, activation="relu", input_shape=(self.latent_shape,)))
-        discriminator.add(Dense(128, activation="relu"))
+        discriminator.add(Dense(64, activation="relu", input_shape=(self.latent_shape,)))
+        discriminator.add(Dropout(0.65))
+        discriminator.add(Dense(64, activation="relu"))
+        discriminator.add(Dropout(0.65))
         discriminator.add(Dense(1, activation="sigmoid"))
 
         discriminator.summary()

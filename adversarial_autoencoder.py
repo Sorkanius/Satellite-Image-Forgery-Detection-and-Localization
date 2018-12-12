@@ -5,7 +5,7 @@ from keras.layers import BatchNormalization, Activation
 from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.convolutional import Conv2D, Conv2DTranspose
 from keras.models import Sequential, Model
-from keras.optimizers import Adam
+from keras.optimizers import Adam, SGD
 import argparse
 import pickle
 import sys 
@@ -30,11 +30,11 @@ class AdversarialAutoencoder():
         self.history = {'d_loss': [], 'd_acc': [], 'd_test_loss': [], 'd_test_acc': [],
                         'g_loss': [], 'g_acc': [], 'g_test_loss': [], 'g_test_acc': []}
 
-        optimizer = Adam(0.0005, 0.5)
+        optimizer = Adam(0.001, 0.5)
 
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
-        self.discriminator.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
+        self.discriminator.compile(loss='binary_crossentropy', optimizer=SGD(0.001), metrics=['accuracy'])
 
         # Build and compile the encoder / decoder
         self.encoder = self.build_encoder()
@@ -289,9 +289,9 @@ class AdversarialAutoencoder():
         plt.plot(np.arange(len(self.history['g_loss'][::step])), self.history['g_loss'][::step],
                  c='C1', label='generator')
         plt.plot(np.arange(len(self.history['d_test_loss'][::step])), self.history['d_test_loss'][::step],
-                 c='C0', label='discriminator test')
+                 c='C2', label='discriminator test')
         plt.plot(np.arange(len(self.history['g_test_loss'][::step])), self.history['g_test_loss'][::step],
-                 c='C1', label='generator test')
+                 c='C3', label='generator test')
         plt.legend()
         plt.grid()
         plt.savefig('figs/aae_loss')
@@ -305,9 +305,9 @@ class AdversarialAutoencoder():
                  label='discriminator')
         plt.plot(np.arange(len(self.history['g_acc'][::step])), self.history['g_acc'][::step], c='C1',
                  label='generator')
-        plt.plot(np.arange(len(self.history['d_test_acc'][::step])), self.history['d_test_acc'][::step], c='C0',
+        plt.plot(np.arange(len(self.history['d_test_acc'][::step])), self.history['d_test_acc'][::step], c='C2',
                  label='discriminator test')
-        plt.plot(np.arange(len(self.history['g_test_acc'][::step])), self.history['g_test_acc'][::step], c='C1',
+        plt.plot(np.arange(len(self.history['g_test_acc'][::step])), self.history['g_test_acc'][::step], c='C3',
                  label='generator test')
         plt.legend()
         plt.grid()
