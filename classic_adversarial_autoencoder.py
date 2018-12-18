@@ -99,10 +99,10 @@ class ClassicAdversarialAutoencoder():
     def build_discriminator(self):
         # Discriminador
         discriminator = Sequential()
-        discriminator.add(Dense(64, activation="relu", input_shape=(self.latent_shape,)))
-        discriminator.add(Dropout(0.65))
-        discriminator.add(Dense(64, activation="relu"))
-        discriminator.add(Dropout(0.65))
+        discriminator.add(Dense(128, activation="relu", input_shape=(self.latent_shape,)))
+        discriminator.add(Dropout(0.85))
+        discriminator.add(Dense(128, activation="relu"))
+        discriminator.add(Dropout(0.85))
         discriminator.add(Dense(1, activation="sigmoid"))
 
         discriminator.summary()

@@ -9,7 +9,7 @@ import numpy as np
 
 def parse_arguments(argv):
     parser = argparse.ArgumentParser()
-    parser.add_argument('--save', type=bool, help='Save of images or just show', default=False)
+    parser.add_argument('--save', type=bool, help='Save of images or just show', default=True)
     parser.add_argument('--analysis', type=bool, help='Analyze the values of each loss', default=True)
     return parser.parse_args(argv)
 
@@ -81,7 +81,7 @@ if __name__ == '__main__':
         plt.savefig('results/test_loss')
     else:
         plt.show()
-        
+
     plt.figure()
     plt.title('Accuracy History')
     plt.xlabel('Iter')
