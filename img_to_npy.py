@@ -1,6 +1,5 @@
 import numpy as np
 from PIL import Image
-from matplotlib import pyplot as plt
 import os
 import argparse
 
@@ -8,7 +7,7 @@ import argparse
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', help='path to img folder', required=True)
-    parser.add_argument('--output', help='name of output folder', default='data.npy')
+    parser.add_argument('--output', help='name of output file', default='data.npy')
     return parser.parse_args()
 
 
@@ -22,9 +21,3 @@ if __name__ == '__main__':
     [data.append(np.array(Image.open(images_folder + img), dtype='uint8')) for img in images]
     np.save(args.output, data)
 
-    # # visually testing our output
-    # img_array = np.load(args.output + '.npy')
-    #
-    # for im in img_array:
-    #     plt.imshow(im)
-    #     plt.show()

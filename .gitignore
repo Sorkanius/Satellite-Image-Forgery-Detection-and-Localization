@@ -11,3 +11,4 @@ __pychache__/
 trainings/
 .ipynb_checkpoints/
 logs/
+embeddings/

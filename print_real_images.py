@@ -3,8 +3,8 @@ matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 def sample_images(imgs):
-        
         r, c = 5, 5
 
         imgs = 0.5 * imgs + 0.5
