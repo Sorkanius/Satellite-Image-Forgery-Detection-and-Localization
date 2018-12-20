@@ -6,7 +6,8 @@ data/
 .gpu-env/
 *.png
 *.pkl
-__pychache__/*
+__pychache__/
 *.sav
 trainings/
 .ipynb_checkpoints/
+logs/

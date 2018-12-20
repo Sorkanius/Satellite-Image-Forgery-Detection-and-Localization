@@ -102,24 +102,24 @@ if __name__ == '__main__':
     if args.analysis:
         ae_test_loss = ae_history['ae_test_loss']
         aae_test_loss = aae_history['g_test_loss']
-        c_aae_loss = c_aae_history['rec_test_loss']
+        c_aae_test_loss = c_aae_history['rec_test_loss']
         iterations = len(ae_test_loss)
         print('Mean loss in last 25% of iterations: ')
         print('AE: {}'.format(np.mean(ae_test_loss[int(0.75*iterations):])))
         print('AAE: {}'.format(np.mean(aae_test_loss[int(0.75*iterations):])))
-        print('C_AAE: {}'.format(np.mean(c_aae_loss[int(0.75*iterations):])))
+        print('C_AAE: {}'.format(np.mean(c_aae_test_loss[int(0.75*iterations):])))
 
         print('\nMean loss in last 10% of iterations: ')
         print('AE: {}'.format(np.mean(ae_test_loss[int(0.90*iterations):])))
         print('AAE: {}'.format(np.mean(aae_test_loss[int(0.90*iterations):])))
-        print('C_AAE: {}'.format(np.mean(c_aae_loss[int(0.90*iterations):])))
+        print('C_AAE: {}'.format(np.mean(c_aae_test_loss[int(0.90*iterations):])))
 
         print('\nMean loss in last 5% of iterations: ')
         print('AE: {}'.format(np.mean(ae_test_loss[int(0.95*iterations):])))
         print('AAE: {}'.format(np.mean(aae_test_loss[int(0.95*iterations):])))
-        print('C_AAE: {}'.format(np.mean(c_aae_loss[int(0.95*iterations):])))
+        print('C_AAE: {}'.format(np.mean(c_aae_test_loss[int(0.95*iterations):])))
 
         print('\nLowest loss: ')
         print('AE: {}'.format(min(ae_test_loss)))
         print('AAE: {}'.format(min(aae_test_loss)))
-        print('C_AAE: {}'.format(min(c_aae_loss)))
+        print('C_AAE: {}'.format(min(c_aae_test_loss)))
