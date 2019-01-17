@@ -63,8 +63,16 @@ if __name__ == '__main__':
         pristine_emb = np.load('embeddings/short_{}_pristine_patches_emb.npy'.format(args.projector))
         forged_emb = np.load('embeddings/{}_forged_patches_emb.npy'.format(args.projector))
 
-        pristine_var = tf.Variable(pristine_emb, name='pristine')
-        forged_var = tf.Variable(forged_emb, name='forged')
+        # pristine_var = tf.Variable(pristine_emb, name='pristine')
+        # forged_var = tf.Variable(forged_emb, name='forged')
+
+        embeddings = np.concatenate((pristine_emb, forged_emb))
+        embeddings_var = tf.Variable(embeddings, name='embeddings')
+
+        file = open('logs/metadata.tsv', 'a+')
+        [file.write('0\n') for i in range(pristine_emb.shape[0])]
+        [file.write('1\n') for i in range(forged_emb.shape[0])]
+        file.close()
 
         init = tf.global_variables_initializer()
         with tf.Session() as session:
@@ -76,10 +84,9 @@ if __name__ == '__main__':
         summary_writer = tf.summary.FileWriter('logs')
 
         embedding = config.embeddings.add()
-        embedding.tensor_name = pristine_var.name
+        embedding.tensor_name = embeddings_var.name
+        embedding.metadata_path = 'metadata.tsv'
 
-        # embedding = config.embeddings.add()
-        # embedding.tensor_name = forged_var.name
         projector.visualize_embeddings(summary_writer, config)
         os.system('tensorboard --logdir=logs/')
 
