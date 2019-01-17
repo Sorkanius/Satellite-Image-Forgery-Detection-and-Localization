@@ -28,10 +28,10 @@ def create_embeddings(model, name):
             encoding = encoding.reshape(2048, 1)
             embeddings.append(encoding)
             if i > MAX_IMAGES and fol == 'pristine_patches' and not short_saved:
-                np.save('embeddings/shot_{}_{}_emb.npy'.format(name, fol), embeddings)
+                np.save('embeddings/short_{}_{}_emb.npy'.format(name, fol), np.squeeze(np.asarray(embeddings)))
                 short_saved = True
 
-        np.save('embeddings/{}_{}_emb.npy'.format(name, fol), embeddings)
+        np.save('embeddings/{}_{}_emb.npy'.format(name, fol), np.squeeze(np.asarray(embeddings)))
 
 
 def parse_arguments(argv):
@@ -59,5 +59,31 @@ if __name__ == '__main__':
 
     if args.projector != '0':
         from tensorflow.contrib.tensorboard.plugins import projector
+
+        pristine_emb = np.load('embeddings/short_{}_pristine_patches_emb.npy'.format(args.projector))
+        forged_emb = np.load('embeddings/{}_forged_patches_emb.npy'.format(args.projector))
+
+        pristine_var = tf.Variable(pristine_emb, name='pristine')
+        forged_var = tf.Variable(forged_emb, name='forged')
+
+        init = tf.global_variables_initializer()
+        with tf.Session() as session:
+            session.run(init)
+            saver = tf.train.Saver()
+            saver.save(session, 'logs/{}_model.ckpt'.format(args.projector), 1)
+
+        config = projector.ProjectorConfig()
+        summary_writer = tf.summary.FileWriter('logs')
+
+        embedding = config.embeddings.add()
+        embedding.tensor_name = pristine_var.name
+
+        # embedding = config.embeddings.add()
+        # embedding.tensor_name = forged_var.name
+        projector.visualize_embeddings(summary_writer, config)
+        os.system('tensorboard --logdir=logs/')
+
+
+
 
 
