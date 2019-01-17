@@ -84,7 +84,7 @@ class Autoencoder():
     def train(self, epochs, batch_size=128, sample_epoch=1, sample_interval=50, train_prop=0.8):
 
         # Load the dataset
-        dataset = np.load('data.npy')
+        dataset = np.load('all.npy')
         mean = np.mean(dataset, axis=(0, 1, 2, 3))
         std = np.std(dataset, axis=(0, 1, 2, 3))
         dataset = (dataset.astype(np.float32) - mean) / (std + 1e-7)
@@ -185,7 +185,7 @@ def parse_arguments(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument('--batch_size', type=int, help='batch_size', default=128)
     parser.add_argument('--epochs', type=int, help='number of epochs to train', default=100)
-    parser.add_argument('--train_prop', type=int, help='Proportion of train set', default=0.8)
+    parser.add_argument('--train_prop', type=float, help='Proportion of train set', default=0.8)
     return parser.parse_args(argv)
 
 

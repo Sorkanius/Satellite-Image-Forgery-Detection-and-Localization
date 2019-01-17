@@ -349,7 +349,7 @@ def parse_arguments(argv):
                         help='number of iterations to pretrain the autoencoder', default=0)
     parser.add_argument('--d_it', type=int,
                         help='number of iterations to pretrain the discriminator', default=0)
-    parser.add_argument('--train_prop', type=int, help='Proportion of train set', default=0.8)
+    parser.add_argument('--train_prop', type=float, help='Proportion of train set', default=0.8)
     return parser.parse_args(argv)
 
 
