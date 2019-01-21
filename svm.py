@@ -1,5 +1,4 @@
 from sklearn.svm import OneClassSVM
-from sklearn import preprocessing
 import pickle
 import numpy as np
 import sys
@@ -17,7 +16,7 @@ def parse_arguments(argv):
 if __name__ == '__main__':
     args = parse_arguments(sys.argv[1:])
 
-    pristine_emb = np.load('embeddings/{}_pristine_patches_emb.npy'.format(args.model))
+    pristine_emb = np.load('embeddings/short_{}_pristine_patches_emb.npy'.format(args.model))
     forged_emb = np.load('embeddings/{}_forged_patches_emb.npy'.format(args.model))
     data_length = int(pristine_emb.shape[0]*1)
     print('Data Loaded, {} pristine vectors'.format(data_length))
@@ -28,12 +27,8 @@ if __name__ == '__main__':
     X_train = pristine_emb[idx[:int(args.train_prop*data_length)]]
     X_test = pristine_emb[idx[int(args.train_prop*data_length):]]
 
-    X_train = preprocessing.scale(X_train)
-    X_test = preprocessing.scale(X_test)
-    forged_emb = preprocessing.scale(forged_emb)
-
     print('Starting training on {} train vectors with {} test vectors'.format(X_train.shape[0], X_test.shape[0]))
-    classifier = OneClassSVM(nu=0.00001, kernel='rbf', gamma=1/2048, cache_size=1000, verbose=True)
+    classifier = OneClassSVM(nu=0.00001, kernel='rbf', gamma=8/2048, cache_size=1000, verbose=True)
     classifier.fit(X_train)
     print('Finishing training')
 
