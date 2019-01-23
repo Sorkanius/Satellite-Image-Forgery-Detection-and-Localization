@@ -24,9 +24,9 @@ def crop(im, height, width, path, filename):
         return False
 
     for i in range(0, img_height//height - 1):
-        for j in range(0, img_width//width): # last row is removed for avoiding watermarks
-            crop = im[i*height:(i+1)*height, j*width:(j+1)*width]
-            Image.fromarray(crop.astype('uint8'), 'RGB').save(os.path.join(path, '{}_{}_{}'.format(i, j, filename)))
+        for j in range(0, img_width//width):  # last row is removed for avoiding watermarks
+            patch = im[i*height:(i+1)*height, j*width:(j+1)*width]
+            Image.fromarray(patch.astype('uint8'), 'RGB').save(os.path.join(path, '{}_{}_{}'.format(filename, i, j)))
 
 
 if __name__ == '__main__':
