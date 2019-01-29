@@ -1,4 +1,6 @@
 from sklearn.svm import OneClassSVM
+from sklearn import random_projection
+from sklearn import preprocessing
 import numpy as np
 import sys
 import argparse
@@ -17,26 +19,31 @@ if __name__ == '__main__':
 
     pristine_emb = np.load('embeddings/short_{}_pristine_patches_emb.npy'.format(args.model))
     forged_emb = np.load('embeddings/{}_forged_patches_emb.npy'.format(args.model))
-    data_length = int(pristine_emb.shape[0]*1)
+    data_length = int(pristine_emb.shape[0])
     print('Data Loaded, {} pristine vectors'.format(data_length))
 
+    np.random.seed(7)
     idx = np.arange(0, data_length)
     np.random.shuffle(idx)
 
     X_train = pristine_emb[idx[:int(args.train_prop*data_length)]]
     X_test = pristine_emb[idx[int(args.train_prop*data_length):]]
 
-    gammas = [1/2048, 2/2048, 4/2048, 8/2048, 0.5/2048, 0.25/2048]
-    nus = [0.00001, 0.0001, 0.001, 0.000001, 0.0000001]
+    # scaler = preprocessing.StandardScaler().fit(X_train)
+    # scaler = random_projection.GaussianRandomProjection(n_components=1024).fit(X_train)
+    # scaler = preprocessing.MinMaxScaler().fit(X_train)
+    # X_train = scaler.transform(X_train)
+    # X_test = scaler.transform(X_test)
+    # forged_emb = scaler.transform(forged_emb)
+
+    gammas = [1/2048, 2/2048, 0.5/2048]
+    nus = [0.00001, 0.0001, 0.000001]
 
     print('Starting training on {} train vectors with {} test vectors'.format(X_train.shape[0], X_test.shape[0]))
 
     for gamma in gammas:
         for nu in nus:
-            classifier = OneClassSVM(nu=nu, kernel='rbf', gamma=gamma, cache_size=1000, verbose=False)
-            classifier.fit(X_train)
-            print('Finishing training')
-
+            classifier = OneClassSVM(nu=nu, kernel='rbf', gamma=gamma, cache_size=2000, verbose=False)
             classifier.fit(X_train)
 
             y_pred_train = classifier.predict(X_train)
@@ -51,3 +58,13 @@ if __name__ == '__main__':
             print('Error test: {}/{} --> {}%'.format(n_error_test, X_test.shape[0], 100*n_error_test/X_test.shape[0]))
             print('Error forged: {}/{} --> {}%'.format(n_error_outliers, forged_emb.shape[0],
                                                        100*n_error_outliers/forged_emb.shape[0]))
+
+            true_positives = y_pred_outliers[y_pred_outliers == -1].size
+            false_negatives = y_pred_outliers[y_pred_outliers == 1].size
+            false_positives = y_pred_test[y_pred_test == -1].size
+            true_negatives = y_pred_test[y_pred_test == 1].size
+
+            precision = true_positives/(true_positives+false_positives)
+            recall = true_positives/(true_positives+false_negatives)
+            f1 = 2/(1/precision + 1/recall)
+            print('Precision: {}, Recall: {}, F1: {}'.format(precision, recall, f1))

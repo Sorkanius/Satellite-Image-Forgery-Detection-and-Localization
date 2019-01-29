@@ -18,7 +18,7 @@ if __name__ == '__main__':
 
     pristine_emb = np.load('embeddings/short_{}_pristine_patches_emb.npy'.format(args.model))
     forged_emb = np.load('embeddings/{}_forged_patches_emb.npy'.format(args.model))
-    data_length = int(pristine_emb.shape[0]*1)
+    data_length = int(pristine_emb.shape[0])
     print('Data Loaded, {} pristine vectors'.format(data_length))
 
     idx = np.arange(0, data_length)
@@ -28,7 +28,7 @@ if __name__ == '__main__':
     X_test = pristine_emb[idx[int(args.train_prop*data_length):]]
 
     print('Starting training on {} train vectors with {} test vectors'.format(X_train.shape[0], X_test.shape[0]))
-    classifier = OneClassSVM(nu=0.00001, kernel='rbf', gamma=8/2048, cache_size=1000, verbose=True)
+    classifier = OneClassSVM(nu=0.0001, kernel='rbf', gamma=0.5/2048, cache_size=2000, verbose=True)
     classifier.fit(X_train)
     print('Finishing training')
 
@@ -44,5 +44,23 @@ if __name__ == '__main__':
     print('Error forged: {}/{} --> {}%'.format(n_error_outliers, forged_emb.shape[0],
                                                100*n_error_outliers/forged_emb.shape[0]))
 
+    true_positives = y_pred_outliers[y_pred_outliers == -1].size
+    false_negatives = y_pred_outliers[y_pred_outliers == 1].size
+    false_positives = y_pred_test[y_pred_test == -1].size
+    true_negatives = y_pred_test[y_pred_test == 1].size
+
+    precision = true_positives/(true_positives+false_positives)
+    recall = true_positives/(true_positives+false_negatives)
+    f1 = 2/(1/precision + 1/recall)
+    print('Precision: {}, Recall: {}, F1: {}'.format(precision, recall, f1))
+
     pickle.dump(classifier, open('models/{}_svm.pkl'.format(args.model), 'wb'))
+
+    all_test = np.load('embeddings/{}_pristine_patches_emb.npy'.format(args.model))
+
+    all_test_pred = classifier.predict(all_test)
+
+    print('Error in all test: {}/{} --> {}%'.format(all_test_pred[all_test_pred == -1].size, all_test.shape[0],
+                                                   100*all_test_pred[all_test_pred == -1].size/all_test.shape[0]))
+
 

@@ -3,13 +3,14 @@ import os
 import numpy as np
 import argparse
 import sys
+from sklearn import preprocessing, random_projection
 from tqdm import tqdm
 import cv2
 from autoencoder import *
 from classic_adversarial_autoencoder import *
 from adversarial_autoencoder import *
 
-MAX_IMAGES = 5000
+MAX_IMAGES = 10000
 
 
 def create_embeddings(model, name):
@@ -23,7 +24,8 @@ def create_embeddings(model, name):
             im = cv2.imread(os.path.join('data', fol, idx))
             if im.shape != (64, 64, 3):
                 continue
-            im = (im.astype(np.float32) - 175.0) / 175.0
+
+            im = (im.astype(np.float32)/255)  # Values 0 to 1
             encoding = model.encoder.predict(np.expand_dims(im, 0))
             encoding = encoding.reshape(2048, 1)
             embeddings.append(encoding)
@@ -47,7 +49,7 @@ if __name__ == '__main__':
     if args.embeddings:
         ae = Autoencoder()
         ae.autoencoder.load_weights('models/ae_autoencoder.h5')
-        create_embeddings(ae, 'ae')
+        create_embeddings(ae, 'ae', True)
 
         aae = AdversarialAutoencoder()
         aae.autoencoder.load_weights('models/aae_autoencoder.h5')
@@ -62,9 +64,6 @@ if __name__ == '__main__':
 
         pristine_emb = np.load('embeddings/short_{}_pristine_patches_emb.npy'.format(args.projector))
         forged_emb = np.load('embeddings/{}_forged_patches_emb.npy'.format(args.projector))
-
-        # pristine_var = tf.Variable(pristine_emb, name='pristine')
-        # forged_var = tf.Variable(forged_emb, name='forged')
 
         embeddings = np.concatenate((pristine_emb, forged_emb))
         embeddings_var = tf.Variable(embeddings, name='embeddings')

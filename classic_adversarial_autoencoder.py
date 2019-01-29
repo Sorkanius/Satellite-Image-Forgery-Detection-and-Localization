@@ -137,10 +137,8 @@ class ClassicAdversarialAutoencoder():
     def train(self, epochs, pre_ae_iterations, batch_size=128, sample_epoch=1, sample_interval=50, train_prop=0.8):
 
         # Load the dataset
-        dataset = np.load('data.npy')
-        mean = np.mean(dataset, axis=(0, 1, 2, 3))
-        std = np.std(dataset, axis=(0, 1, 2, 3))
-        dataset = (dataset.astype(np.float32) - mean) / (std + 1e-7)
+        dataset = np.load('new_data.npy')
+        dataset = dataset/255
         X_train = dataset[np.arange(0, int(np.floor(dataset.shape[0]*train_prop)))]
         X_test = dataset[np.arange(int(np.floor(dataset.shape[0]*train_prop)), dataset.shape[0])]
         iterations = int(np.ceil(X_train.shape[0] / batch_size))
@@ -262,8 +260,6 @@ class ClassicAdversarialAutoencoder():
             os.mkdir('images')
 
         gen_imgs = self.autoencoder.predict(imgs)
-
-        gen_imgs = 0.5 * gen_imgs + 0.5
 
         fig, axs = plt.subplots(r, c)
         cnt = 0

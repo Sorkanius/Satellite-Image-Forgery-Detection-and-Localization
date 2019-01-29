@@ -12,3 +12,5 @@ trainings/
 .ipynb_checkpoints/
 logs/
 embeddings/
+test/
+embeddings/
