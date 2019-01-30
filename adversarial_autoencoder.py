@@ -219,7 +219,7 @@ class AdversarialAutoencoder():
                 #  Train Discriminator
                 # ---------------------
 
-                imgs_index_dis = np.random.choice(index_dis, min(batch_size, len(index_dis)))
+                imgs_index_dis = np.random.choice(index_dis, min(batch_size, len(index_dis)), replace=False)
                 index_dis = np.delete(index_dis, imgs_index_dis)
                 imgs = X_train[imgs_index_dis]
                 test_imgs = X_test[np.random.randint(0, X_test.shape[0], batch_size)]
@@ -243,7 +243,7 @@ class AdversarialAutoencoder():
                 # ---------------------
                 #  Train Generator
                 # ---------------------
-                imgs_index_gen = np.random.choice(index_gen, min(batch_size, len(index_gen)))
+                imgs_index_gen = np.random.choice(index_gen, min(batch_size, len(index_gen)), replace=False)
                 index_gen = np.delete(index_gen, imgs_index_gen)
                 imgs = X_train[imgs_index_gen]
                 test_imgs = X_test[np.random.randint(0, X_test.shape[0], batch_size)]

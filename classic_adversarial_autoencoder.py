@@ -158,7 +158,7 @@ class ClassicAdversarialAutoencoder():
                 # ---------------------
                 #  Regularization Phase
                 # ---------------------
-                imgs_index_reg = np.random.choice(index_reg, min(batch_size, len(index_reg)))
+                imgs_index_reg = np.random.choice(index_reg, min(batch_size, len(index_reg)), replace=False)
                 index_reg = np.delete(index_reg, min(batch_size, len(index_reg)))
                 imgs = X_train[imgs_index_reg]
                 test_imgs = X_test[np.random.randint(0, X_test.shape[0], batch_size)]
@@ -186,7 +186,7 @@ class ClassicAdversarialAutoencoder():
                 # ---------------------
                 #  Reconstruction Phase
                 # ---------------------
-                imgs_index_rec = np.random.choice(index_rec, min(batch_size, len(index_rec)))
+                imgs_index_rec = np.random.choice(index_rec, min(batch_size, len(index_rec)), replace=False)
                 index_rec = np.delete(index_rec, imgs_index_rec)
                 imgs = X_train[imgs_index_rec]
                 test_imgs = X_test[np.random.randint(0, X_test.shape[0], batch_size)]

@@ -101,7 +101,7 @@ class Autoencoder():
             # ---------------------
             index = np.arange(X_train.shape[0])
             for it in range(iterations):
-                imgs_index = np.random.choice(index, min(batch_size, len(index)))
+                imgs_index = np.random.choice(index, min(batch_size, len(index)), replace=False)
                 index = np.delete(index, imgs_index)
                 imgs = X_train[imgs_index]
                 test_imgs = X_test[np.random.randint(0, X_test.shape[0], batch_size)]
