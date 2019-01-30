@@ -237,7 +237,7 @@ def parse_arguments(argv):
     parser.add_argument('--batch_size', type=int, help='batch_size', default=128)
     parser.add_argument('--epochs', type=int, help='number of iterations to train', default=50)
     parser.add_argument('--train_prop', type=float, help='Proportion of train set', default=0.8)
-    parser.add_argument('--nodes', type=int, help='Number of nodes to train', default=10)
+    parser.add_argument('--nodes', type=int, help='Number of nodes to train', default=15)
     return parser.parse_args(argv)
 
 
@@ -246,9 +246,8 @@ if __name__ == '__main__':
     n_nodes = args.nodes
     dataset = np.load('new_data.npy')/255
     forged = np.load('forged.npy')/255
-    # epochs = abs(np.random.normal(0, 10, n_nodes) + args.epochs)
-    # epochs = [int(x) for x in epochs]
-    epochs = np.ones(n_nodes, dtype='int')
+    epochs = abs(np.random.normal(0, 10, n_nodes) + args.epochs)
+    epochs = [int(x) for x in epochs]
     x_train = dataset[np.arange(0, int(np.floor(dataset.shape[0]*args.train_prop)))]
     x_test = dataset[np.arange(int(np.floor(dataset.shape[0]*args.train_prop)), int(dataset.shape[0]))]
 
@@ -258,7 +257,7 @@ if __name__ == '__main__':
     train_sets = [x_train[i*train_length:(i + 1)*train_length] for i in range(0, n_nodes)]
     for i, train_set in enumerate(train_sets):
         print('--------------- Training node {} with {} epochs ---------------'.format(i, epochs[i]))
-        node_history = {'ae': {}, 'svm': []}
+        node_history = {'ae': {}, 'svm': [], 'epochs': epochs[i]}
         aae = AdversarialAutoencoder()
         train_loss, test_loss = aae.train(epochs=epochs[i], X_train=train_set, X_test=x_test, batch_size=args.batch_size)
         node_history['ae'] = {'train_loss': str(train_loss), 'test_loss': str(test_loss)}
@@ -309,7 +308,7 @@ if __name__ == '__main__':
                                                                'recall': str(recall), 'f1': str(f1)}})
                 pickle.dump(classifier, open('nodes/svm/{}_{}_{}.pkl'.format(i, gamma, nu), 'wb'))
 
-    nodes_history[i] = node_history
+        nodes_history[i] = node_history
 
     print(nodes_history)
     with open('nodes/history.json', 'w') as fp:
