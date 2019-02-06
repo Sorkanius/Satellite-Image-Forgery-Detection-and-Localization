@@ -11,6 +11,7 @@ import json
 import argparse
 import pickle
 import sys
+import os
 try:
     import matplotlib
     matplotlib.use('agg')
@@ -181,13 +182,13 @@ class AdversarialAutoencoder():
                 self.history['g_test_acc'].append(g_test_loss[-1]*100)
 
                 print('[Training Adversarial AE]--- Epoch: {}/{} | It {}/{} | '
-                      'd_loss: {:.4f} | d_acc: {:.2f} | '
-                      'g_loss: {:.4f} | g_acc: {:.2f} | '
-                      'd_test_loss: {:.4f} | d_test_acc: {:.2f} | '
-                      'g_test_loss: {:.4f} | g_test_acc: {:.2f} | '
-                      .format(ep + 1, epochs, it, iterations, d_loss[0], d_loss[1]*100, g_loss[0], g_loss[-1]*100,
-                              d_test_loss[0], d_test_loss[1]*100, g_test_loss[0], g_test_loss[-1]*100),
-                      end='\r', flush=True)
+                       'd_loss: {:.4f} | d_acc: {:.2f} | '
+                       'g_loss: {:.4f} | g_acc: {:.2f} | '
+                       'd_test_loss: {:.4f} | d_test_acc: {:.2f} | '
+                       'g_test_loss: {:.4f} | g_test_acc: {:.2f} | '
+                       .format(ep + 1, epochs, it, iterations, d_loss[0], d_loss[1]*100, g_loss[0], g_loss[-1]*100,
+                               d_test_loss[0], d_test_loss[1]*100, g_test_loss[0], g_test_loss[-1]*100),
+                       end='\r', flush=True)
 
         return g_loss[0], g_test_loss[0]
 
@@ -227,7 +228,7 @@ class AdversarialAutoencoder():
         plt.savefig('nodes/figs/{}_accuracy'.format(id))
 
     def save_model(self, id):
-        self.autoencoder.save_weights('nodes/autoencoders/{}.h5'.format(id))
+        self.autoencoder.save_weights('nodes/nodes/{}/{}.h5'.format(id, id))
         with open('nodes/history/{}.pkl'.format(id), 'wb') as f:
             pickle.dump(self.history, f, pickle.HIGHEST_PROTOCOL)
 
@@ -244,28 +245,31 @@ def parse_arguments(argv):
 if __name__ == '__main__':
     args = parse_arguments(sys.argv[1:])
     n_nodes = args.nodes
+    n_images = 10000
     dataset = np.load('new_data.npy')/255
     forged = np.load('forged.npy')/255
     epochs = abs(np.random.normal(0, 10, n_nodes) + args.epochs)
     epochs = [int(x) for x in epochs]
+    #epochs = np.ones(n_nodes, dtype='int')
     x_train = dataset[np.arange(0, int(np.floor(dataset.shape[0]*args.train_prop)))]
     x_test = dataset[np.arange(int(np.floor(dataset.shape[0]*args.train_prop)), int(dataset.shape[0]))]
-
+    idx = np.arange(0, x_train.shape[0])
     del dataset  # Free memory
     nodes_history = {}
-    train_length = int(x_train.shape[0]/n_nodes)
-    train_sets = [x_train[i*train_length:(i + 1)*train_length] for i in range(0, n_nodes)]
-    for i, train_set in enumerate(train_sets):
+    for i in range(n_nodes):
         print('--------------- Training node {} with {} epochs ---------------'.format(i, epochs[i]))
-        node_history = {'ae': {}, 'svm': [], 'epochs': epochs[i]}
+        train_len = int(n_images*np.random.randint(9, 12)/10)
+        train_idx = np.random.choice(idx, train_len, replace=False)
+        node_history = {'ae': {}, 'svm': [], 'epochs': str(epochs[i]), 'n_images': str(train_len)}
         aae = AdversarialAutoencoder()
-        train_loss, test_loss = aae.train(epochs=epochs[i], X_train=train_set, X_test=x_test, batch_size=args.batch_size)
+        train_loss, test_loss = aae.train(epochs=epochs[i], X_train=x_train[train_idx], X_test=x_test, batch_size=args.batch_size)
         node_history['ae'] = {'train_loss': str(train_loss), 'test_loss': str(test_loss)}
+        os.makedirs('nodes/nodes/{}'.format(i), exist_ok=True)
         aae.save_model(i)
         aae.plot(i)
         print('\nCreating embeddings in node {}'.format(i))
 
-        embeddings = aae.encoder.predict(train_set, batch_size=args.batch_size)
+        embeddings = aae.encoder.predict(x_train[train_idx], batch_size=args.batch_size)
         embeddings = embeddings.reshape(embeddings.shape[0], 2048)
 
         test_embeddings = aae.encoder.predict(x_test, batch_size=args.batch_size)
@@ -274,8 +278,8 @@ if __name__ == '__main__':
         forged_embeddings = aae.encoder.predict(forged, batch_size=args.batch_size)
         forged_embeddings = forged_embeddings.reshape(forged_embeddings.shape[0], 2048)
 
-        gammas = [0.5/2048]
-        nus = [0.0001]
+        gammas = [1/2048, 0.5/2048, 2/2048]
+        nus = [0.0001, 0.00001]
 
         for gamma in gammas:
             for nu in nus:
@@ -306,9 +310,9 @@ if __name__ == '__main__':
                 print('Precision: {}, Recall: {}, F1: {}'.format(precision, recall, f1))
                 node_history['svm'].append({str((gamma, nu)): {'precision': str(precision),
                                                                'recall': str(recall), 'f1': str(f1)}})
-                pickle.dump(classifier, open('nodes/svm/{}_{}_{}.pkl'.format(i, gamma, nu), 'wb'))
+                pickle.dump(classifier, open('nodes/nodes/{}/{}_{}.pkl'.format(i, gamma, nu), 'wb'))
 
-        nodes_history[i] = node_history
+        nodes_history[str(i)] = node_history
 
     print(nodes_history)
     with open('nodes/history.json', 'w') as fp:
