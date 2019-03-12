@@ -272,7 +272,7 @@ class AdversarialAutoencoder():
                               d_test_loss[0], d_test_loss[1]*100, g_test_loss[0], g_test_loss[-1]*100),
                       end='\r', flush=True)
 
-                if g_test_loss < last_loss:
+                if g_test_loss[0] < last_loss:
                     self.autoencoder.save_weights('models/aae_autoencoder.h5')
                     last_loss = g_test_loss
 
