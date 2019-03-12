@@ -215,10 +215,11 @@ class AdversarialAutoencoder():
         elif pre_ae_iterations > 0:
             self.pretrain_ae(X_train, pre_ae_iterations, batch_size)
 
+        last_loss = 1e6
         for ep in range(epochs):
             index_dis = np.arange(X_train.shape[0])
             index_gen = np.arange(X_train.shape[0])
-            last_loss = 1e6
+            mean_loss = []
             for it in range(iterations):
                 # ---------------------
                 #  Train Discriminator
@@ -257,7 +258,8 @@ class AdversarialAutoencoder():
                                                                      [imgs,
                                                                       np.ones((min(batch_size, len(index_gen)), 1))])
                 g_test_loss = self.adversarial_autoencoder.test_on_batch(test_imgs,
-                                                                         [test_imgs, np.ones((batch_size, 1))])
+                                                                        [test_imgs, np.ones((batch_size, 1))])
+                mean_loss.append(g_test_loss[0])
                 self.history['g_loss'].append(g_loss[0])
                 self.history['g_acc'].append(g_loss[-1]*100)
                 self.history['g_test_loss'].append(g_test_loss[0])
@@ -271,10 +273,11 @@ class AdversarialAutoencoder():
                       .format(ep + 1, epochs, it, iterations, d_loss[0], d_loss[1]*100, g_loss[0], g_loss[-1]*100,
                               d_test_loss[0], d_test_loss[1]*100, g_test_loss[0], g_test_loss[-1]*100),
                       end='\r', flush=True)
-
-                if g_test_loss[0] < last_loss:
-                    self.autoencoder.save_weights('models/low_aae_autoencoder.h5')
-                    last_loss = g_test_loss[0]
+            mean_loss = np.mean(mean_loss)
+            if mean_loss < last_loss:
+                self.autoencoder.save_weights('models/low_aae_autoencoder.h5')
+                last_loss = mean_loss
+                print('Saving model. Lowest loss: {}'.format(last_loss))
 
             # If at save interval => save generated image samples
             if ep % sample_epoch == 0:
