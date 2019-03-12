@@ -190,7 +190,7 @@ class AdversarialAutoencoder():
         self.discriminator.save_weights('models/aae_discriminator.h5')
 
     def train(self, epochs, pre_dis_iterations, pre_ae_iterations, batch_size=128,
-              sample_epoch=1, sample_interval=50, train_prop=0.8):
+              sample_epoch=5, sample_interval=50, train_prop=0.8):
 
         # Load the dataset
         dataset = np.load('new_data.npy')
