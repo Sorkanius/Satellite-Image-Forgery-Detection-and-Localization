@@ -32,7 +32,7 @@ class AdversarialAutoencoder():
         self.history = {'d_loss': [], 'd_acc': [], 'd_test_loss': [], 'd_test_acc': [],
                         'g_loss': [], 'g_acc': [], 'g_test_loss': [], 'g_test_acc': []}
 
-        optimizer = Adam(0.001, 0.5)
+        optimizer = Adam(0.0005, 0.5)
 
         # Build and compile the discriminator
         self.discriminator = self.build_discriminator()
