@@ -273,7 +273,7 @@ class AdversarialAutoencoder():
                       end='\r', flush=True)
 
                 if g_test_loss[0] < last_loss:
-                    self.autoencoder.save_weights('models/aae_autoencoder.h5')
+                    self.autoencoder.save_weights('models/low_aae_autoencoder.h5')
                     last_loss = g_test_loss[0]
 
             # If at save interval => save generated image samples
