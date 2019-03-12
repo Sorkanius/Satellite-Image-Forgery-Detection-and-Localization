@@ -265,19 +265,22 @@ class AdversarialAutoencoder():
                 self.history['g_test_loss'].append(g_test_loss[0])
                 self.history['g_test_acc'].append(g_test_loss[-1]*100)
 
-                print('[Training Adversarial AE]--- Epoch: {}/{} | It {}/{} | '
-                      'd_loss: {:.4f} | d_acc: {:.2f} | '
-                      'g_loss: {:.4f} | g_acc: {:.2f} | '
-                      'd_test_loss: {:.4f} | d_test_acc: {:.2f} | '
-                      'g_test_loss: {:.4f} | g_test_acc: {:.2f} | '
-                      .format(ep + 1, epochs, it, iterations, d_loss[0], d_loss[1]*100, g_loss[0], g_loss[-1]*100,
-                              d_test_loss[0], d_test_loss[1]*100, g_test_loss[0], g_test_loss[-1]*100),
-                      end='\r', flush=True)
+                # print('[Training Adversarial AE]--- Epoch: {}/{} | It {}/{} | '
+                #       'd_loss: {:.4f} | d_acc: {:.2f} | '
+                #       'g_loss: {:.4f} | g_acc: {:.2f} | '
+                #       'd_test_loss: {:.4f} | d_test_acc: {:.2f} | '
+                #       'g_test_loss: {:.4f} | g_test_acc: {:.2f} | '
+                #       .format(ep + 1, epochs, it, iterations, d_loss[0], d_loss[1]*100, g_loss[0], g_loss[-1]*100,
+                #               d_test_loss[0], d_test_loss[1]*100, g_test_loss[0], g_test_loss[-1]*100),
+                #       end='\r', flush=True)
+            
             mean_loss = np.mean(mean_loss)
             if mean_loss < last_loss:
                 self.autoencoder.save_weights('models/low_aae_autoencoder.h5')
                 last_loss = mean_loss
-                print('Saving model. Lowest loss: {}'.format(last_loss))
+                print('Saving model')
+            print('[Training Adversarial AE]--- Epoch: {}/{}. '
+                  'Mean Loss: {}. Lowest loss: {}'.format(ep + 1, epochs, mean_loss, last_loss), end='\r', flush=True)
 
             # If at save interval => save generated image samples
             if ep % sample_epoch == 0:
