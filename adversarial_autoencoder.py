@@ -8,7 +8,9 @@ from keras.models import Sequential, Model
 from keras.optimizers import Adam, SGD
 import argparse
 import pickle
-import sys 
+import sys
+from keras import regularizers
+
 try:
     import matplotlib
     matplotlib.use('agg')
@@ -64,15 +66,15 @@ class AdversarialAutoencoder():
     def build_encoder(self):
         # Encoder
         encoder = Sequential()
-        encoder.add(Conv2D(16, kernel_size=6, strides=1, padding='same', input_shape=self.img_shape))
+        encoder.add(Conv2D(16, kernel_size=6, strides=1, padding='same', input_shape=self.img_shape, activation='relu'))
         encoder.add(BatchNormalization())
-        encoder.add(Conv2D(16, kernel_size=5, strides=2, padding='same'))
+        encoder.add(Conv2D(16, kernel_size=5, strides=2, padding='same', activation='relu'))
         encoder.add(BatchNormalization())
-        encoder.add(Conv2D(32, kernel_size=4, strides=2, padding='same'))
+        encoder.add(Conv2D(32, kernel_size=4, strides=2, padding='same', activation='relu'))
         encoder.add(BatchNormalization())
-        encoder.add(Conv2D(64, kernel_size=3, strides=2, padding='same'))
+        encoder.add(Conv2D(64, kernel_size=3, strides=2, padding='same', activation='relu'))
         encoder.add(BatchNormalization())
-        encoder.add(Conv2D(128, kernel_size=2, strides=2, padding='same'))
+        encoder.add(Conv2D(128, kernel_size=2, strides=2, padding='same', activation='relu'))
     
         encoder.summary()
 
@@ -81,16 +83,16 @@ class AdversarialAutoencoder():
     def build_decoder(self):
         # Decoder
         decoder = Sequential()
-        decoder.add(Conv2DTranspose(64, kernel_size=2, strides=2, padding='same', input_shape=self.encoded_shape))
+        decoder.add(Conv2DTranspose(64, kernel_size=2, strides=2, padding='same', input_shape=self.encoded_shape, activation='relu'))
         decoder.add(BatchNormalization())
-        decoder.add(Conv2DTranspose(32, kernel_size=3, strides=2, padding='same'))
+        decoder.add(Conv2DTranspose(32, kernel_size=3, strides=2, padding='same', activation='relu'))
         decoder.add(BatchNormalization())
-        decoder.add(Conv2DTranspose(16, kernel_size=4, strides=2, padding='same'))
+        decoder.add(Conv2DTranspose(16, kernel_size=4, strides=2, padding='same', activation='relu'))
         decoder.add(BatchNormalization())
-        decoder.add(Conv2DTranspose(16, kernel_size=5, strides=2, padding='same'))
+        decoder.add(Conv2DTranspose(16, kernel_size=5, strides=2, padding='same', activation='relu'))
         decoder.add(BatchNormalization())
-        decoder.add(Conv2DTranspose(3, kernel_size=6, strides=1, padding='same'))
-        decoder.add(Activation(activation='tanh'))
+        decoder.add(Conv2DTranspose(3, kernel_size=6, strides=1, padding='same', activation='relu'))
+        decoder.add(Activation(activation='sigmoid'))
 
         decoder.summary()
 
@@ -193,6 +195,8 @@ class AdversarialAutoencoder():
         # Load the dataset
         dataset = np.load('new_data.npy')
         dataset = dataset/255
+        # dataset = np.dot(dataset[..., :3], [0.33333, 0.33333, 0.33333])  # Change to black and white
+        # dataset = np.expand_dims(dataset, axis=3) # Change to black and white
         X_train = dataset[np.arange(0, int(np.floor(dataset.shape[0]*train_prop)))]
         X_test = dataset[np.arange(int(np.floor(dataset.shape[0]*train_prop)), dataset.shape[0])]
         iterations = int(np.ceil(X_train.shape[0] / batch_size))
@@ -214,6 +218,7 @@ class AdversarialAutoencoder():
         for ep in range(epochs):
             index_dis = np.arange(X_train.shape[0])
             index_gen = np.arange(X_train.shape[0])
+            last_loss = 1e6
             for it in range(iterations):
                 # ---------------------
                 #  Train Discriminator
@@ -267,6 +272,10 @@ class AdversarialAutoencoder():
                               d_test_loss[0], d_test_loss[1]*100, g_test_loss[0], g_test_loss[-1]*100),
                       end='\r', flush=True)
 
+                if g_test_loss < last_loss:
+                    self.autoencoder.save_weights('models/aae_autoencoder.h5')
+                    last_loss = g_test_loss
+
             # If at save interval => save generated image samples
             if ep % sample_epoch == 0:
                 # Select some images to see how the reconstruction gets better
@@ -318,7 +327,6 @@ class AdversarialAutoencoder():
             os.mkdir('images')
 
         gen_imgs = self.autoencoder.predict(imgs)
-
         fig, axs = plt.subplots(r, c)
         cnt = 0
         for i in range(r):
