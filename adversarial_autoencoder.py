@@ -91,7 +91,7 @@ class AdversarialAutoencoder():
         decoder.add(BatchNormalization())
         decoder.add(Conv2DTranspose(16, kernel_size=5, strides=2, padding='same', activation='relu'))
         decoder.add(BatchNormalization())
-        decoder.add(Conv2DTranspose(3, kernel_size=6, strides=1, padding='same', activation='relu'))
+        decoder.add(Conv2DTranspose(3, kernel_size=6, strides=1, padding='same'))
         decoder.add(Activation(activation='sigmoid'))
 
         decoder.summary()
