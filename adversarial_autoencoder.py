@@ -195,9 +195,6 @@ class AdversarialAutoencoder():
         # Load the dataset
         dataset = np.load('new_data.npy')
         dataset = dataset/255
-        mean = np.mean(dataset, axis=(0, 1, 2, 3))
-        std = np.std(dataset, axis=(0, 1, 2, 3))
-        dataset = (dataset.astype(np.float32) - mean) / (std + 1e-7)
 
         X_train = dataset[np.arange(0, int(np.floor(dataset.shape[0]*train_prop)))]
         X_test = dataset[np.arange(int(np.floor(dataset.shape[0]*train_prop)), dataset.shape[0])]
@@ -282,9 +279,9 @@ class AdversarialAutoencoder():
                 # Select some images to see how the reconstruction gets better
                 idx = np.arange(0, 25)
 
-                imgs = 0.5*X_train[idx] + 0.5
+                imgs = X_train[idx]
                 self.sample_images(ep, imgs)
-                test_imgs = 0.5*X_test[idx] + 0.5
+                test_imgs = X_test[idx]
                 self.sample_images(ep, test_imgs, plot='test')
 
     def plot(self):
