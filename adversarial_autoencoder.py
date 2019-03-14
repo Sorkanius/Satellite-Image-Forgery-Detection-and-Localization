@@ -10,6 +10,8 @@ import argparse
 import pickle
 import sys
 from keras import regularizers
+from sklearn.preprocessing import StandardScaler
+
 
 try:
     import matplotlib
@@ -195,10 +197,12 @@ class AdversarialAutoencoder():
         # Load the dataset
         dataset = np.load('new_data.npy')
         dataset = dataset/255
-        # dataset = np.dot(dataset[..., :3], [0.33333, 0.33333, 0.33333])  # Change to black and white
-        # dataset = np.expand_dims(dataset, axis=3) # Change to black and white
+        ss = StandardScaler()
+        dataset = ss.fit_transform(dataset)
+
         X_train = dataset[np.arange(0, int(np.floor(dataset.shape[0]*train_prop)))]
         X_test = dataset[np.arange(int(np.floor(dataset.shape[0]*train_prop)), dataset.shape[0])]
+        del dataset
         iterations = int(np.ceil(X_train.shape[0] / batch_size))
         print('Start training on {} images and {} test images'.format(X_train.shape[0], X_test.shape[0]))
         print('There is a total of {} iterations per epoch'.format(iterations))
@@ -278,9 +282,10 @@ class AdversarialAutoencoder():
             if ep % sample_epoch == 0:
                 # Select some images to see how the reconstruction gets better
                 idx = np.arange(0, 25)
-                imgs = X_train[idx]
+
+                imgs = ss.inverse_transform(X_train[idx])
                 self.sample_images(ep, imgs)
-                test_imgs = X_test[idx]
+                test_imgs = ss.inverse_transform(X_test[idx])
                 self.sample_images(ep, test_imgs, plot='test')
 
     def plot(self):
