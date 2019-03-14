@@ -65,37 +65,35 @@ class AdversarialAutoencoder():
         self.adversarial_autoencoder.summary()
         print(self.adversarial_autoencoder.metrics_names)
 
-    def build_encoder(self):
-        # Encoder
-        encoder = Sequential()
-        encoder.add(Conv2D(16, kernel_size=10, strides=1, padding='same', input_shape=self.img_shape))
-        encoder.add(BatchNormalization())
-        encoder.add(Conv2D(16, kernel_size=8, strides=2, padding='same'))
-        encoder.add(BatchNormalization())
-        encoder.add(Conv2D(32, kernel_size=6, strides=2, padding='same'))
-        encoder.add(BatchNormalization())
-        encoder.add(Conv2D(64, kernel_size=4, strides=2, padding='same'))
-        encoder.add(BatchNormalization())
-        encoder.add(Conv2D(128, kernel_size=2, strides=2, padding='same'))
-    
-        encoder.summary()
+        def build_encoder(self):
+            # Encoder
+            encoder = Sequential()
+            encoder.add(Conv2D(16, kernel_size=6, strides=1, padding='same', input_shape=self.img_shape))
+            encoder.add(BatchNormalization())
+            encoder.add(Conv2D(16, kernel_size=5, strides=2, padding='same'))
+            encoder.add(BatchNormalization())
+            encoder.add(Conv2D(32, kernel_size=4, strides=2, padding='same'))
+            encoder.add(BatchNormalization())
+            encoder.add(Conv2D(64, kernel_size=3, strides=2, padding='same'))
+            encoder.add(BatchNormalization())
+            encoder.add(Conv2D(128, kernel_size=2, strides=2, padding='same'))
+            encoder.summary()
 
-        return encoder
+            return encoder
 
     def build_decoder(self):
         # Decoder
         decoder = Sequential()
-        decoder.add(Conv2DTranspose(64, kernel_size=2, strides=2, padding='same', input_shape=self.encoded_shape))
+        decoder.add(Conv2DTranspose(64, kernel_size=2, strides=2, padding='same', input_shape = self.encoded_shape))
         decoder.add(BatchNormalization())
-        decoder.add(Conv2DTranspose(32, kernel_size=4, strides=2, padding='same'))
+        decoder.add(Conv2DTranspose(32, kernel_size=3, strides=2, padding='same'))
         decoder.add(BatchNormalization())
-        decoder.add(Conv2DTranspose(16, kernel_size=6, strides=2, padding='same'))
+        decoder.add(Conv2DTranspose(16, kernel_size=4, strides=2, padding='same'))
         decoder.add(BatchNormalization())
-        decoder.add(Conv2DTranspose(16, kernel_size=8, strides=2, padding='same'))
+        decoder.add(Conv2DTranspose(16, kernel_size=5, strides=2, padding='same'))
         decoder.add(BatchNormalization())
-        decoder.add(Conv2DTranspose(3, kernel_size=10, strides=1, padding='same'))
+        decoder.add(Conv2DTranspose(3, kernel_size=6, strides=1, padding='same'))
         decoder.add(Activation(activation='tanh'))
-
         decoder.summary()
 
         return decoder
