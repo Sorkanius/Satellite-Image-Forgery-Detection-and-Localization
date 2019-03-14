@@ -66,15 +66,15 @@ class AdversarialAutoencoder():
     def build_encoder(self):
         # Encoder
         encoder = Sequential()
-        encoder.add(Conv2D(16, kernel_size=6, strides=1, padding='same', input_shape=self.img_shape, activation='relu'))
+        encoder.add(Conv2D(16, kernel_size=10, strides=1, padding='same', input_shape=self.img_shape))
         encoder.add(BatchNormalization())
-        encoder.add(Conv2D(16, kernel_size=5, strides=2, padding='same', activation='relu'))
+        encoder.add(Conv2D(16, kernel_size=8, strides=2, padding='same'))
         encoder.add(BatchNormalization())
-        encoder.add(Conv2D(32, kernel_size=4, strides=2, padding='same', activation='relu'))
+        encoder.add(Conv2D(32, kernel_size=6, strides=2, padding='same'))
         encoder.add(BatchNormalization())
-        encoder.add(Conv2D(64, kernel_size=3, strides=2, padding='same', activation='relu'))
+        encoder.add(Conv2D(64, kernel_size=4, strides=2, padding='same'))
         encoder.add(BatchNormalization())
-        encoder.add(Conv2D(128, kernel_size=2, strides=2, padding='same', activation='relu'))
+        encoder.add(Conv2D(128, kernel_size=2, strides=2, padding='same'))
     
         encoder.summary()
 
@@ -83,16 +83,16 @@ class AdversarialAutoencoder():
     def build_decoder(self):
         # Decoder
         decoder = Sequential()
-        decoder.add(Conv2DTranspose(64, kernel_size=2, strides=2, padding='same', input_shape=self.encoded_shape, activation='relu'))
+        decoder.add(Conv2DTranspose(64, kernel_size=2, strides=2, padding='same', input_shape=self.encoded_shape))
         decoder.add(BatchNormalization())
-        decoder.add(Conv2DTranspose(32, kernel_size=3, strides=2, padding='same', activation='relu'))
+        decoder.add(Conv2DTranspose(32, kernel_size=4, strides=2, padding='same'))
         decoder.add(BatchNormalization())
-        decoder.add(Conv2DTranspose(16, kernel_size=4, strides=2, padding='same', activation='relu'))
+        decoder.add(Conv2DTranspose(16, kernel_size=6, strides=2, padding='same'))
         decoder.add(BatchNormalization())
-        decoder.add(Conv2DTranspose(16, kernel_size=5, strides=2, padding='same', activation='relu'))
+        decoder.add(Conv2DTranspose(16, kernel_size=8, strides=2, padding='same'))
         decoder.add(BatchNormalization())
-        decoder.add(Conv2DTranspose(3, kernel_size=6, strides=1, padding='same'))
-        decoder.add(Activation(activation='sigmoid'))
+        decoder.add(Conv2DTranspose(3, kernel_size=10, strides=1, padding='same'))
+        decoder.add(Activation(activation='tanh'))
 
         decoder.summary()
 
@@ -265,20 +265,12 @@ class AdversarialAutoencoder():
                 self.history['g_test_loss'].append(g_test_loss[0])
                 self.history['g_test_acc'].append(g_test_loss[-1]*100)
 
-                # print('[Training Adversarial AE]--- Epoch: {}/{} | It {}/{} | '
-                #       'd_loss: {:.4f} | d_acc: {:.2f} | '
-                #       'g_loss: {:.4f} | g_acc: {:.2f} | '
-                #       'd_test_loss: {:.4f} | d_test_acc: {:.2f} | '
-                #       'g_test_loss: {:.4f} | g_test_acc: {:.2f} | '
-                #       .format(ep + 1, epochs, it, iterations, d_loss[0], d_loss[1]*100, g_loss[0], g_loss[-1]*100,
-                #               d_test_loss[0], d_test_loss[1]*100, g_test_loss[0], g_test_loss[-1]*100),
-                #       end='\r', flush=True)
-            
             mean_loss = np.mean(mean_loss)
             if mean_loss < last_loss:
                 self.autoencoder.save_weights('models/low_aae_autoencoder.h5')
+                with open('models/aae_history.pkl', 'wb') as f:
+                    pickle.dump(self.history, f, pickle.HIGHEST_PROTOCOL)
                 last_loss = mean_loss
-                print('Saving model')
             print('[Training Adversarial AE]--- Epoch: {}/{}. '
                   'Mean Loss: {}. Lowest loss: {}'.format(ep + 1, epochs, mean_loss, last_loss), end='\r', flush=True)
 
