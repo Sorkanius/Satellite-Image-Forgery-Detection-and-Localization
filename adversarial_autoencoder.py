@@ -195,8 +195,17 @@ class AdversarialAutoencoder():
         # Load the dataset
         dataset = np.load('new_data.npy')
         dataset = dataset/255
-        ss = StandardScaler()
-        dataset = ss.fit_transform(dataset)
+        r_mean = np.mean(dataset[:, :, :, 0])
+        g_mean = np.mean(dataset[:, :, :, 1])
+        b_mean = np.mean(dataset[:, :, :, 2])
+
+        r_std = np.std(dataset[:, :, :, 0])
+        g_std = np.std(dataset[:, :, :, 1])
+        b_std = np.std(dataset[:, :, :, 2])
+
+        dataset[:, :, :, 0] = (dataset[:, :, :, 0] - r_mean)/r_std
+        dataset[:, :, :, 1] = (dataset[:, :, :, 1] - g_mean)/g_std
+        dataset[:, :, :, 2] = (dataset[:, :, :, 2] - b_mean)/b_std
 
         X_train = dataset[np.arange(0, int(np.floor(dataset.shape[0]*train_prop)))]
         X_test = dataset[np.arange(int(np.floor(dataset.shape[0]*train_prop)), dataset.shape[0])]
@@ -281,9 +290,16 @@ class AdversarialAutoencoder():
                 # Select some images to see how the reconstruction gets better
                 idx = np.arange(0, 25)
 
-                imgs = ss.inverse_transform(X_train[idx])
+                imgs = X_train[idx]
+                imgs[:, :, :, 0] = imgs[:, :, :, 0]*r_std + r_mean
+                imgs[:, :, :, 1] = imgs[:, :, :, 0]*g_std + g_mean
+                imgs[:, :, :, 2] = imgs[:, :, :, 0]*b_std + b_mean
+
                 self.sample_images(ep, imgs)
-                test_imgs = ss.inverse_transform(X_test[idx])
+                test_imgs = X_test[idx]
+                test_imgs[:, :, :, 0] = imgs[:, :, :, 0]*r_std + r_mean
+                test_imgs[:, :, :, 1] = imgs[:, :, :, 0]*g_std + g_mean
+                test_imgs[:, :, :, 2] = imgs[:, :, :, 0]*b_std + b_mean
                 self.sample_images(ep, test_imgs, plot='test')
 
     def plot(self):
