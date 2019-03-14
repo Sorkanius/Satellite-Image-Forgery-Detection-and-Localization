@@ -65,21 +65,21 @@ class AdversarialAutoencoder():
         self.adversarial_autoencoder.summary()
         print(self.adversarial_autoencoder.metrics_names)
 
-        def build_encoder(self):
-            # Encoder
-            encoder = Sequential()
-            encoder.add(Conv2D(16, kernel_size=6, strides=1, padding='same', input_shape=self.img_shape))
-            encoder.add(BatchNormalization())
-            encoder.add(Conv2D(16, kernel_size=5, strides=2, padding='same'))
-            encoder.add(BatchNormalization())
-            encoder.add(Conv2D(32, kernel_size=4, strides=2, padding='same'))
-            encoder.add(BatchNormalization())
-            encoder.add(Conv2D(64, kernel_size=3, strides=2, padding='same'))
-            encoder.add(BatchNormalization())
-            encoder.add(Conv2D(128, kernel_size=2, strides=2, padding='same'))
-            encoder.summary()
+    def build_encoder(self):
+        # Encoder
+        encoder = Sequential()
+        encoder.add(Conv2D(16, kernel_size=6, strides=1, padding='same', input_shape=self.img_shape))
+        encoder.add(BatchNormalization())
+        encoder.add(Conv2D(16, kernel_size=5, strides=2, padding='same'))
+        encoder.add(BatchNormalization())
+        encoder.add(Conv2D(32, kernel_size=4, strides=2, padding='same'))
+        encoder.add(BatchNormalization())
+        encoder.add(Conv2D(64, kernel_size=3, strides=2, padding='same'))
+        encoder.add(BatchNormalization())
+        encoder.add(Conv2D(128, kernel_size=2, strides=2, padding='same'))
+        encoder.summary()
 
-            return encoder
+        return encoder
 
     def build_decoder(self):
         # Decoder
