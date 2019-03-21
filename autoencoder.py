@@ -25,10 +25,10 @@ class Autoencoder():
         self.img_cols = 64
         self.channels = 3
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
-        self.encoded_shape = (4, 4, 128)
+        self.encoded_shape = (4, 4, 256)
         self.history = {'ae_loss': [], 'ae_acc': [], 'ae_test_loss': [], 'ae_test_acc': []}
 
-        optimizer = Adam(0.001, 0.5)
+        optimizer = Adam(0.0005, 0.5)
 
         # Build and compile the encoder / decoder
         self.encoder = self.build_encoder()
@@ -49,16 +49,15 @@ class Autoencoder():
     def build_encoder(self):
         # Encoder
         encoder = Sequential()
-        encoder.add(Conv2D(16, kernel_size=6, strides=1, padding='same', input_shape=self.img_shape))
+        encoder.add(Conv2D(2*16, kernel_size=6, strides=1, padding='same', input_shape=self.img_shape))
         encoder.add(BatchNormalization())
-        encoder.add(Conv2D(16, kernel_size=5, strides=2, padding='same'))
+        encoder.add(Conv2D(2*16, kernel_size=5, strides=2, padding='same'))
         encoder.add(BatchNormalization())
-        encoder.add(Conv2D(32, kernel_size=4, strides=2, padding='same'))
+        encoder.add(Conv2D(2*32, kernel_size=4, strides=2, padding='same'))
         encoder.add(BatchNormalization())
-        encoder.add(Conv2D(64, kernel_size=3, strides=2, padding='same'))
+        encoder.add(Conv2D(2*64, kernel_size=3, strides=2, padding='same'))
         encoder.add(BatchNormalization())
-        encoder.add(Conv2D(128, kernel_size=2, strides=2, padding='same'))
-
+        encoder.add(Conv2D(2*128, kernel_size=2, strides=2, padding='same'))
         encoder.summary()
 
         return encoder
@@ -66,22 +65,21 @@ class Autoencoder():
     def build_decoder(self):
         # Decoder
         decoder = Sequential()
-        decoder.add(Conv2DTranspose(64, kernel_size=2, strides=2, padding='same', input_shape=self.encoded_shape))
+        decoder.add(Conv2DTranspose(2*64, kernel_size=2, strides=2, padding='same', input_shape = self.encoded_shape))
         decoder.add(BatchNormalization())
-        decoder.add(Conv2DTranspose(32, kernel_size=3, strides=2, padding='same'))
+        decoder.add(Conv2DTranspose(2*32, kernel_size=3, strides=2, padding='same'))
         decoder.add(BatchNormalization())
-        decoder.add(Conv2DTranspose(16, kernel_size=4, strides=2, padding='same'))
+        decoder.add(Conv2DTranspose(2*16, kernel_size=4, strides=2, padding='same'))
         decoder.add(BatchNormalization())
-        decoder.add(Conv2DTranspose(16, kernel_size=5, strides=2, padding='same'))
+        decoder.add(Conv2DTranspose(2*16, kernel_size=5, strides=2, padding='same'))
         decoder.add(BatchNormalization())
         decoder.add(Conv2DTranspose(3, kernel_size=6, strides=1, padding='same'))
         decoder.add(Activation(activation='tanh'))
-
         decoder.summary()
 
         return decoder
 
-    def train(self, epochs, batch_size=128, sample_epoch=1, sample_interval=50, train_prop=0.8):
+    def train(self, epochs, batch_size=128, sample_epoch=5, sample_interval=50, train_prop=0.8):
 
         # Load the dataset
         dataset = np.load('new_data.npy')
@@ -95,11 +93,14 @@ class Autoencoder():
             self.autoencoder.load_weights('models/ae_autoencoder.h5')
             print('Loaded autoencoder weights!')
 
+        last_loss = 1e6
         for ep in range(epochs):
             # ---------------------
             #  Train Autoencoder
             # ---------------------
             index = np.arange(X_train.shape[0])
+            mean_loss = []
+
             for it in range(iterations):
                 imgs_index = np.random.choice(index, min(batch_size, len(index)), replace=False)
                 index = np.delete(index, imgs_index)
@@ -107,15 +108,20 @@ class Autoencoder():
                 test_imgs = X_test[np.random.randint(0, X_test.shape[0], batch_size)]
                 ae_loss = self.autoencoder.train_on_batch(imgs, imgs)
                 ae_test_loss = self.autoencoder.test_on_batch(test_imgs, test_imgs)
+                mean_loss.append(ae_test_loss[0])
                 self.history['ae_loss'].append(ae_loss[0])
                 self.history['ae_acc'].append(ae_loss[1])
                 self.history['ae_test_loss'].append(ae_test_loss[0])
                 self.history['ae_test_acc'].append(ae_test_loss[1])
 
-                print('[Training Autoencoder AE]--- Epoch: {}/{} | It {}/{} | loss: {:.4f} | acc: {:.2f} | '
-                      'test_loss: {:.4f} | test_acc: {:.2f}'.format(ep + 1, epochs, it, iterations, ae_loss[0],
-                                                                    ae_loss[-1]*100, ae_test_loss[0],
-                                                                    ae_test_loss[-1]*100), end='\r', flush=True)
+            mean_loss = np.mean(mean_loss)
+            if mean_loss < last_loss:
+                self.autoencoder.save_weights('models/low_ae_autoencoder.h5')
+                with open('models/aae_history.pkl', 'wb') as f:
+                    pickle.dump(self.history, f, pickle.HIGHEST_PROTOCOL)
+                last_loss = mean_loss
+            print('[Training Adversarial AE]--- Epoch: {}/{}. '
+                  'Mean Loss: {}. Lowest loss: {}'.format(ep + 1, epochs, mean_loss, last_loss), end='\r', flush=True)
 
             # If at save interval => save generated image samples
             if ep % sample_epoch == 0:
