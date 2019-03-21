@@ -194,7 +194,7 @@ def parse_arguments(argv):
 if __name__ == '__main__':
     ae = Autoencoder()
     args = parse_arguments(sys.argv[1:])
-    print('Arguments: Epochs {}, batch_size {}, train_prop {}'.format(args.epochs, args.epochs, args.train_prop))
+    print('Arguments: Epochs {}, batch_size {}, train_prop {}'.format(args.epochs, args.batch_size, args.train_prop))
     try:
         ae.train(epochs=args.epochs, batch_size=args.batch_size, train_prop=args.train_prop)
         ae.save_model()
